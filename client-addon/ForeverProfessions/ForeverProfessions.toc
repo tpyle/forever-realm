@@ -1,0 +1,7 @@
+## Interface: 16001
+## Title: Forever Professions
+## Notes: Lists every profession you know, with a button to open it. Use /prof to show or hide.
+## Version: 1.1
+## SavedVariablesPerCharacter: ForeverProfessionsMacros
+
+ForeverProfessions.lua

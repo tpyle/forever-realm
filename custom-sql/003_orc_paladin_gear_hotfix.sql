@@ -1,0 +1,40 @@
+-- Starting gear for orc paladin. Apply to the `hotfixes` database.
+-- Human paladin armor and mace, plus hearthstone, water and the orc starting food (jerky).
+-- 3000 is the new-character loadout (Purpose 9); 3001 mirrors the client's Purpose 1 row.
+DELETE FROM character_loadout WHERE ID IN (3000, 3001);
+INSERT INTO character_loadout (ID, ChrClassID, Purpose, ItemContext, Field_1_60_1_69876_003, RaceMask1, RaceMask2, VerifiedBuild) VALUES
+  (3000, 2, 9, 75, 0, 2, 0, 70790), (3001, 2, 1, 75, 0, 2, 0, 70790);
+DELETE FROM character_loadout_item WHERE ID BETWEEN 36905 AND 36918;
+INSERT INTO character_loadout_item (ID, CharacterLoadoutID, ItemID, VerifiedBuild) VALUES
+  (36905, 3000, 45, 70790),
+  (36906, 3000, 43, 70790),
+  (36907, 3000, 44, 70790),
+  (36908, 3000, 2361, 70790),
+  (36909, 3000, 6948, 70790),
+  (36910, 3000, 159, 70790),
+  (36911, 3000, 117, 70790),
+  (36912, 3001, 45, 70790),
+  (36913, 3001, 43, 70790),
+  (36914, 3001, 44, 70790),
+  (36915, 3001, 2361, 70790),
+  (36916, 3001, 6948, 70790),
+  (36917, 3001, 159, 70790),
+  (36918, 3001, 117, 70790);
+DELETE FROM hotfix_data WHERE Id BETWEEN 2000201 AND 2000216;
+INSERT INTO hotfix_data (Id, UniqueId, TableHash, RecordId, Status, VerifiedBuild) VALUES
+  (2000201, 2000201, 3758770171, 3000, 1, 70790),
+  (2000202, 2000202, 3758770171, 3001, 1, 70790),
+  (2000203, 2000203, 1707318183, 36905, 1, 70790),
+  (2000204, 2000204, 1707318183, 36906, 1, 70790),
+  (2000205, 2000205, 1707318183, 36907, 1, 70790),
+  (2000206, 2000206, 1707318183, 36908, 1, 70790),
+  (2000207, 2000207, 1707318183, 36909, 1, 70790),
+  (2000208, 2000208, 1707318183, 36910, 1, 70790),
+  (2000209, 2000209, 1707318183, 36911, 1, 70790),
+  (2000210, 2000210, 1707318183, 36912, 1, 70790),
+  (2000211, 2000211, 1707318183, 36913, 1, 70790),
+  (2000212, 2000212, 1707318183, 36914, 1, 70790),
+  (2000213, 2000213, 1707318183, 36915, 1, 70790),
+  (2000214, 2000214, 1707318183, 36916, 1, 70790),
+  (2000215, 2000215, 1707318183, 36917, 1, 70790),
+  (2000216, 2000216, 1707318183, 36918, 1, 70790);

@@ -1,0 +1,19 @@
+[Unit]
+Description=WoW Forever (TrinityCore) login server
+Requires=mysql.service
+After=network.target mysql.service
+
+[Service]
+Type=simple
+User=wow
+Group=wow
+# Certificate paths in bnetserver.conf are relative to this directory.
+WorkingDirectory=/opt/wow/forever/server/bin
+ExecStart=/opt/wow/forever/server/bin/bnetserver -c /opt/wow/forever/server/etc/bnetserver.conf
+Restart=on-failure
+RestartSec=5
+LimitNOFILE=524288
+SyslogIdentifier=forever-bnet
+
+[Install]
+WantedBy=multi-user.target

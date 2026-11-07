@@ -1,0 +1,29 @@
+[Unit]
+Description=WoW Forever (TrinityCore) world server
+Requires=mysql.service
+# Wants, not Requires: players in the world do not need the login server.
+Wants=forever-bnet.service
+After=network.target mysql.service forever-bnet.service
+StartLimitIntervalSec=1800
+StartLimitBurst=3
+
+[Service]
+Type=simple
+User=wow
+Group=wow
+WorkingDirectory=/opt/wow/forever/server/bin
+Environment=TERM=dumb
+# Console commands: echo 'command' > /run/forever-world/console (output goes to the journal).
+RuntimeDirectory=forever-world
+ExecStartPre=/usr/bin/mkfifo -m 0600 /run/forever-world/console
+ExecStart=/bin/sh -c 'exec /opt/wow/forever/server/bin/worldserver -c /opt/wow/forever/server/etc/worldserver.conf <>/run/forever-world/console'
+Restart=on-failure
+RestartSec=10
+TimeoutStartSec=1800
+TimeoutStopSec=180
+LimitNOFILE=524288
+LogRateLimitIntervalSec=0
+SyslogIdentifier=forever-world
+
+[Install]
+WantedBy=multi-user.target

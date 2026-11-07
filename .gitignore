@@ -1,0 +1,19 @@
+# The game server: its own repository (tpyle/TrinityCore, a fork of
+# advocaite/TrinityCore's forever branch).
+/TrinityCore/
+
+# Build tree, and the install it produces: binaries, generated configuration
+# (server/etc/*.conf hold the database password; tools/apply_config.py
+# regenerates them), extracted client data and logs.
+/build/
+/server/
+
+# The game client, 49 GB, copied here only for map extraction.
+/client/
+
+# Secrets: the database password and the private CA (kept as a fallback for
+# the Let's Encrypt certificate).
+/.db_pass
+/ca/
+
+__pycache__/
