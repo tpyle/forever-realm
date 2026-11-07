@@ -84,6 +84,15 @@ priests (Swords, Two-Handed Swords, Daggers) had none, so 021 adds trainable
 rows, plus Bows from the start for undead and gnome hunters, whose starting
 kit has a bow. Every new combination can use its starting gear.
 
+Every weapon for everyone (022-023): every race and class can train all 15
+weapon skills at a weapon master. That needs three things: a trainable
+`SkillRaceClassInfo` row per skill for all classes and races; copies of the
+weapon spells' `SkillLineAbility` rows for the classes they leave out (the
+spells are class-limited too, including Shoot Bow/Gun/Crossbow, Throw and
+Shoot, which come with the skill; hunters keep Auto Shot instead of the three
+Shoot spells); and Wands at every weapon master, since only casters had it and
+no trainer taught it. Each weapon master still teaches only its own weapons.
+
 Known gaps: some starting zones have no trainer for the new classes; paladin
 chargers and priest racial spells stay race-locked.
 
