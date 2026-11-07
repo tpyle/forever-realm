@@ -8,12 +8,10 @@
 /build/
 /server/
 
-# The game client, 49 GB, copied here only for map extraction.
+# The game client, if copied here again to re-extract maps (49 GB).
 /client/
 
-# Secrets: the database password and the private CA (kept as a fallback for
-# the Let's Encrypt certificate).
+# The database password.
 /.db_pass
-/ca/
 
 __pycache__/

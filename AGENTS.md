@@ -13,7 +13,7 @@ before touching it. This file is the short list of rules and traps.
   upstream `forever` plus our commits). `origin` is the fork and `upstream`
   is advocaite. Commit C++ changes there.
 - Gitignored and only on disk: `server/` (binaries, generated config, client
-  data, logs), `build/`, `client/`, `.db_pass`, `ca/`.
+  data, logs), `build/`, `.db_pass`.
 
 ## Running
 

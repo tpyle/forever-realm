@@ -15,7 +15,7 @@ MySQL server. Rules for working on it are in `AGENTS.md`.
 | `custom-sql/` | Every change to the databases, numbered, with rollbacks |
 | `client-addon/` | Addons the client needs, copied to `_forever_/Interface/AddOns/` |
 | `tools/` | `apply_config.py`, systemd units, the certificate hook |
-| `client/` | The game client, used for map extraction (gitignored) |
+| `client/` | Not kept: copy the game client here again to re-extract maps (gitignored) |
 
 ## Login and ports
 
@@ -33,8 +33,9 @@ The login certificate is Let's Encrypt for `wow.thomaspyle.com` (DNS-01 via
 Route 53, credentials in `/root/.aws/credentials`). `certbot.timer` renews
 it, and `tools/letsencrypt/forever-bnet.sh`, installed as
 `/etc/letsencrypt/renewal-hooks/deploy/forever-bnet.sh`, copies it to
-`server/bin/wow.{cert,key}.pem` and restarts bnetserver. A private CA in
-`ca/` was used before and is kept as a fallback.
+`server/bin/wow.{cert,key}.pem` and restarts bnetserver. (A private CA was
+used at first and has been deleted; `bnetserver.{cert,key}.pem` in
+`server/bin` are TrinityCore's stock files and are not used.)
 
 ## Client builds
 
@@ -71,6 +72,9 @@ Holy Light is race-locked in the client data (human and dwarf learn it at
 creation, undead can train it), so other paladin races get it from
 `playercreateinfo_spell_custom`, which needs `PlayerStart.AllSpells = 1`.
 
+Confirmed in game: creation of the new combinations, Holy Light for new
+paladin races, the new trainers, Sky Elves, and human bear form.
+
 Known gaps: some new combinations lack weapon skills their class normally
 starts with (druids' Maces and Daggers, undead and gnome hunters' Axes and
 Guns, a few for Sky Elves); some starting zones have no trainer for the new
@@ -94,7 +98,8 @@ but the client's trainer window stops at two. Fizzle Everhand, a goblin in
 Gadgetzan, teaches them through a gossip menu instead
 (`npc_profession_tutor` in the core). The client's professions pane also
 shows only two, so the `ForeverProfessions` addon lists them all (`/prof`)
-and creates a macro for each one with a window.
+and creates a macro for each one with a window. Both work in game, and
+normal trainers sell the higher ranks of a third or later profession.
 
 Fizzle first could not be clicked: the server hides the gossip flag from an
 NPC with no gossip menu in the database, even when a script provides the
