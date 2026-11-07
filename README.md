@@ -75,10 +75,17 @@ creation, undead can train it), so other paladin races get it from
 Confirmed in game: creation of the new combinations, Holy Light for new
 paladin races, the new trainers, Sky Elves, and human bear form.
 
-Known gaps: some new combinations lack weapon skills their class normally
-starts with (druids' Maces and Daggers, undead and gnome hunters' Axes and
-Guns, a few for Sky Elves); some starting zones have no trainer for the new
-classes; paladin chargers and priest racial spells stay race-locked.
+Weapon skills (021): `SkillRaceClassInfo` says which races and classes may
+have a skill, and whether they start with it (Availability 1) or train it at
+a weapon master (0). With no matching row a character can never have it,
+and weapon masters show it as unavailable. The new druids (Maces, Daggers),
+undead and gnome hunters (Axes, Guns) and Sky Elf paladins, warlocks and
+priests (Swords, Two-Handed Swords, Daggers) had none, so 021 adds trainable
+rows, plus Bows from the start for undead and gnome hunters, whose starting
+kit has a bow. Every new combination can use its starting gear.
+
+Known gaps: some starting zones have no trainer for the new classes; paladin
+chargers and priest racial spells stay race-locked.
 
 ### Trainers for the new classes (005-007, 014-020)
 
