@@ -121,6 +121,27 @@ Fizzle first could not be clicked: the server hides the gossip flag from an
 NPC with no gossip menu in the database, even when a script provides the
 menu. 009 gives him one.
 
+### Talent points beyond levelling (024-025, `cs_talentgrant`)
+
+    .talents show  [player]            granted points, and total / spent / unspent
+    .talents grant <count> [player]    add to the grant
+    .talents take  <count> [player]    subtract from it
+    .talents set   <count> [player]    set it outright
+
+Omit the player to use your target or yourself. Online characters only.
+
+Talents here are the trait system: talent points are trait currency 3820, and
+the client adds up its sources (`TraitCurrencySource`, one point per level
+10-60) itself. A server-side bonus would never reach it, so each granted point
+is a hidden marker quest (9100001-9100249, flagged as a tracking event so it
+never shows in the quest log) with a source worth one point. The command
+completes or removes those quests; the client sees them through the
+quest-completed bits (`QuestV2.UniqueBitFlag` 72701 onwards), and they are
+saved with the character, so the points survive level-ups, relogs and talent
+resets. The currency's cap (`TraitCurrency.SourcedMax`) is raised from 51 to
+300, so at most 249 points can be granted. Taking away points that are
+already spent is refused; reset talents first.
+
 ### Starting bags (004)
 
 Every new character gets four of item 277845, A Reasonably Large Bag.
