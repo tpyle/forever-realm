@@ -48,7 +48,9 @@ SETTINGS = {
         "Logger.sql.sql": "5,DBErrors",
         # World scaling (core WorldScale.h, custom-sql 055): a creature below the player fights, shows and rewards as the
         # player's level. As the WotLK realm's mod-worldscale: scale up only, dungeons and raids too, elites yes, bosses
-        # no, half way to the scaled kill experience, aggro as if 5 levels below. Applies to creatures as they spawn.
+        # no, aggro as if 5 levels below. Kill experience: half way from what the creature pays a player of its own level
+        # to what an equal level creature pays the player (level 1 creature, level 5 player: 50 -> 70, pays 60).
+        # Applies to creatures as they spawn.
         "WorldScale.Enable": "1",
         "WorldScale.Dungeons": "1",
         "WorldScale.Raids": "1",
