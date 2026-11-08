@@ -115,6 +115,15 @@ after Kobold Camp Cleanup, like the other classes' letters (no letter item):
 A Druid's Summons (9100301) and A Shaman's Summons (9100302), level 1, with
 QuestV2 hotfix rows (bits 72950-72951).
 
+Coldridge Valley (033-035), where dwarves and gnomes start: Durgan
+Mossbeard (druid, a copy of Corwin with a dwarf look and the Ironforge
+faction) inside Anvilmar. Sten Stoutarm's class letters (after Dwarven
+Outfitters) were runes for dwarves and memorandums for gnomes, each race
+missing some classes; the existing letters are now open to both races
+(Consecrated, Etched and Archaic Rune for gnomes, Glyphic and Tainted
+Memorandum for dwarves), and A Druid's Summons (9100303, QuestV2 bit 72952)
+sends druids of both to Durgan.
+
 Class trainers train only their own class (032, core). Upstream offered
 every class trainer's training window to everyone. `Creature::CanTrainPlayerClass`
 (from `creature_template.trainer_class`) now hides the training option and
@@ -195,7 +204,12 @@ only that part.
   it, and that copy is stale, so keybinds reverted to defaults.
   `WorldSession::SendAccountDataTimes` presents stored data as current, so
   the client always loads it from the server. (Debug logging showed the
-  client requests and applies it once the server's copy is newer.)
+  client requests and applies it once the server's copy is newer.) Once
+  since then (2026-11-08), the client uploaded an old copy of the account
+  keybinds at a login and replaced the good one; a server restart while in
+  game and a new character's first login did not reproduce it. If it
+  recurs, `server set loglevel l root 2` logs every account data request
+  and upload to `server/logs/Server.log` (`5` restores the level).
 
 ### Starting bags (004)
 
