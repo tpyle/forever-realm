@@ -163,6 +163,23 @@ never reset these modifiers. Offline characters can be changed; it applies at
 their next login. Ratings convert at the same rate at every level in this
 client: 10 hit = 1% hit, 14 crit = 1% crit, 10 haste = 1% haste.
 
+Upstream's fix for stats stacking on level-up set a stat's whole base value
+to the new level's base stat, which dropped these bonuses until a relog.
+`Unit::SetCreateStat` now tracks the create stat separately and replaces
+only that part.
+
+### Core fixes for the Classic client
+
+- Transmog: only soulbound items were collected, and most white and grey
+  gear has no binding, so vendor and looted gear never counted.
+  `CollectionMgr::AddItemAppearance` collects unbound items when obtained.
+- Keybinds: the client uploads account data (keybinds, layout) at logout,
+  but at login it keeps its own local copy when the server's time equals
+  it, and that copy is stale, so keybinds reverted to defaults.
+  `WorldSession::SendAccountDataTimes` presents stored data as current, so
+  the client always loads it from the server. (Debug logging showed the
+  client requests and applies it once the server's copy is newer.)
+
 ### Starting bags (004)
 
 Every new character gets four of item 277845, A Reasonably Large Bag.
