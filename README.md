@@ -142,6 +142,11 @@ resets. The currency's cap (`TraitCurrency.SourcedMax`) is raised from 51 to
 300, so at most 249 points can be granted. Taking away points that are
 already spent is refused; reset talents first.
 
+Upstream reset every character's talents at each level-up below 15 (a
+retail rule; Classic talents start at 10). `Player::InitTalentForLevel` in
+the core now resets below 15 only when the active talents spend more points
+than the character owns, as after lowering its level.
+
 ### Starting bags (004)
 
 Every new character gets four of item 277845, A Reasonably Large Bag.
