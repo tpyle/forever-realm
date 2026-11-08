@@ -1,0 +1,17 @@
+-- Client QuestV2 rows for the quests in 046 (completed-quest bits 72960-72964). Apply to the `hotfixes` database;
+-- restart worldserver.
+DELETE FROM quest_v2 WHERE ID BETWEEN 9100311 AND 9100315;
+INSERT INTO quest_v2 (ID, UniqueBitFlag, UiQuestDetailsTheme, VerifiedBuild) VALUES
+  (9100311, 72960, 0, 70790),
+  (9100312, 72961, 0, 70790),
+  (9100313, 72962, 0, 70790),
+  (9100314, 72963, 0, 70790),
+  (9100315, 72964, 0, 70790);
+
+DELETE FROM hotfix_data WHERE Id BETWEEN 2000945 AND 2000949;
+INSERT INTO hotfix_data (Id, UniqueId, TableHash, RecordId, Status, VerifiedBuild) VALUES
+  (2000945, 2000945, 986198281, 9100311, 1, 70790),
+  (2000946, 2000946, 986198281, 9100312, 1, 70790),
+  (2000947, 2000947, 986198281, 9100313, 1, 70790),
+  (2000948, 2000948, 986198281, 9100314, 1, 70790),
+  (2000949, 2000949, 986198281, 9100315, 1, 70790);
