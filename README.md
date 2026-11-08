@@ -93,7 +93,7 @@ Shoot, which come with the skill; hunters keep Auto Shot instead of the three
 Shoot spells); and Wands at every weapon master, since only casters had it and
 no trainer taught it. Each weapon master still teaches only its own weapons.
 
-Known gaps: the Sky Elf start may lack trainers for the new classes; paladin chargers and priest racial spells stay
+Known gaps: paladin chargers and priest racial spells stay
 race-locked.
 
 ### Trainers for the new classes (005-007, 014-020)
@@ -140,6 +140,19 @@ priests (to Ken'jai) and orc and troll paladins (to Korgath) and druids.
 Orcs and trolls get separate copies, so each gets its race's reputation
 (Orgrimmar, Darkspear), like the stock parchments and tablets. Korgath now
 has the starting paladin list (28) instead of the capital one.
+
+Sky Elf start (052-054): both Sky Elf races (95 Alliance, 96 Horde) start
+in Thendal Grove (map 2991), whose NPCs are mostly neutral (faction 35).
+Saraan Brightgale (paladin), Liaara Moonbreeze (priest) and Vexaan Duskgale
+(warlock) are neutral too, and Rorian the Dayseeker offers their class
+quests, and a mage one for Dorii Brightwhisper, to both races after Harmony
+in Balance (level 2, Skyborne reputation, like the stock ones). No stock
+priest or warlock greeting is readable by both factions, so those two have
+their own menus (8103028-8103029: a universal stock text plus copies of
+the stock options and conditions). The shaman trainers (Windshapers, 3599)
+and Dorii (High Order, 3600) were hostile to the other faction and are now
+neutral. The two later Sky Elf hubs still have no paladin, priest or
+warlock trainers.
 
 How these are made, for the remaining starting zones:
 
