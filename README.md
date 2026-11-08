@@ -93,8 +93,7 @@ Shoot, which come with the skill; hunters keep Auto Shot instead of the three
 Shoot spells); and Wands at every weapon master, since only casters had it and
 no trainer taught it. Each weapon master still teaches only its own weapons.
 
-Known gaps: the Valley of Trials and the Sky Elf start may lack trainers
-for the new classes; paladin chargers and priest racial spells stay
+Known gaps: the Sky Elf start may lack trainers for the new classes; paladin chargers and priest racial spells stay
 race-locked.
 
 ### Trainers for the new classes (005-007, 014-020)
@@ -135,7 +134,12 @@ Sarvis after The Mindless Ones. Camp Narache (045-048): Ahrok Dawnhoof
 (paladin), Kesh Swiftstride (rogue), Yanna Brightmane (priest, east of the
 camp), Tarhi Starhorn (mage, by the kodo skeleton to the south) and Grath
 Ashmane (warlock, behind the graveyard), with quests from Grull Hawkwind
-after The Hunt Begins.
+after The Hunt Begins. Valley of Trials (049-051): Thrag Earthroot (druid,
+just outside the camp), and quests from Gornek after Cutting Teeth for orc
+priests (to Ken'jai) and orc and troll paladins (to Korgath) and druids.
+Orcs and trolls get separate copies, so each gets its race's reputation
+(Orgrimmar, Darkspear), like the stock parchments and tablets. Korgath now
+has the starting paladin list (28) instead of the capital one.
 
 How these are made, for the remaining starting zones:
 
