@@ -93,8 +93,9 @@ Shoot, which come with the skill; hunters keep Auto Shot instead of the three
 Shoot spells); and Wands at every weapon master, since only casters had it and
 no trainer taught it. Each weapon master still teaches only its own weapons.
 
-Known gaps: starting zones other than Northshire may lack trainers for the new classes; paladin
-chargers and priest racial spells stay race-locked.
+Known gaps: the Valley of Trials and the Sky Elf start may lack trainers
+for the new classes; paladin chargers and priest racial spells stay
+race-locked.
 
 ### Trainers for the new classes (005-007, 014-020)
 
@@ -123,6 +124,33 @@ missing some classes; the existing letters are now open to both races
 (Consecrated, Etched and Archaic Rune for gnomes, Glyphic and Tainted
 Memorandum for dwarves), and A Druid's Summons (9100303, QuestV2 bit 72952)
 sends druids of both to Durgan.
+
+Shadowglen (036-038): Thalric Dawnleaf (paladin), Ilyran Stormbough
+(shaman, at the foot of Aldrassil), Sylwen Starweaver (mage) and Naeryth
+Duskshade (warlock), with class quests from Conservator Ilthalaine after The
+Balance of Nature. Deathknell (041-044): Edric Thornwood (hunter, upstairs
+with the warrior trainer), Mordecai Vale (shaman, by the graveyard) and
+Agatha Fenwick (druid, outside the church), with quests from Shadow Priest
+Sarvis after The Mindless Ones. Camp Narache (045-048): Ahrok Dawnhoof
+(paladin), Kesh Swiftstride (rogue), Yanna Brightmane (priest, east of the
+camp), Tarhi Starhorn (mage, by the kodo skeleton to the south) and Grath
+Ashmane (warlock, behind the graveyard), with quests from Grull Hawkwind
+after The Hunt Begins.
+
+How these are made, for the remaining starting zones:
+
+- Each trainer is a copy of a starting-zone trainer of its class (its
+  trainer list teaches spells up to level 6, and its menu has the class
+  greetings), with an appearance borrowed from a local NPC, the zone's
+  faction, and the spawn settings of a trainer there.
+- Greetings keep the language they were written in: a menu copied from an
+  Alliance trainer may be in Common, which Horde characters cannot read
+  (048). Check `broadcast_text.LanguageID` (0 universal, 1 Orcish,
+  7 Common) and avoid texts naming another race's leaders or places.
+- Each class quest is a copy of A Druid's Summons (9100301, level 1 with
+  the Classic level and money rows, no letter item), with the zone's
+  faction as its reputation reward (039; not Stormwind) and no portrait
+  (040: a portrait showed as a grey box), plus a QuestV2 hotfix row.
 
 Class trainers train only their own class (032, core). Upstream offered
 every class trainer's training window to everyone. `Creature::CanTrainPlayerClass`
