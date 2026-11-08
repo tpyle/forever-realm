@@ -9,3 +9,4 @@ DELETE FROM quest_template_classic_level WHERE ID BETWEEN 9100321 AND 9100324;
 DELETE FROM quest_classic_level WHERE ID BETWEEN 9100321 AND 9100324;
 DELETE FROM quest_classic_money WHERE ID BETWEEN 9100321 AND 9100324;
 DELETE FROM quest_template WHERE ID BETWEEN 9100321 AND 9100324;
+UPDATE creature_template SET npcflag = npcflag & ~2 WHERE entry = 251379;

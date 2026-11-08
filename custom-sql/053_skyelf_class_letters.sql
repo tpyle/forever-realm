@@ -67,3 +67,6 @@ INSERT INTO quest_classic_level (ID, QuestLevel, MinLevel, MaxLevel) SELECT ID, 
 INSERT INTO creature_queststarter (id, quest, VerifiedBuild) SELECT 251361, ID, 0 FROM tmp_q;
 INSERT INTO creature_questender (id, quest, VerifiedBuild) SELECT ender, ID, 0 FROM tmp_q;
 DROP TEMPORARY TABLE tmp_q;
+
+-- Dorii had no quest of her own, so no quest-giver flag (npcflag 49; the zone's other trainers have 51).
+UPDATE creature_template SET npcflag = npcflag | 2 WHERE entry = 251379;
