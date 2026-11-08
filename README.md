@@ -93,7 +93,7 @@ Shoot, which come with the skill; hunters keep Auto Shot instead of the three
 Shoot spells); and Wands at every weapon master, since only casters had it and
 no trainer taught it. Each weapon master still teaches only its own weapons.
 
-Known gaps: some starting zones have no trainer for the new classes; paladin
+Known gaps: starting zones other than Northshire may lack trainers for the new classes; paladin
 chargers and priest racial spells stay race-locked.
 
 ### Trainers for the new classes (005-007, 014-020)
@@ -106,6 +106,12 @@ Ashward (Undercity), Durga Lightsworn (Orgrimmar, Valley of Honor) and
 Korgath the Redeemed (Valley of Trials, by the orc and troll start).
 Shaman trainers use trainer list 10 and menu 5123, paladin ones list 29 and
 menu 4663.
+
+Northshire (027-030), where only humans start: Corwin Oakheart (druid,
+list 17, menu 4508) and Brannoc Stormward (shaman) in the abbey, and class
+quests from Marshal McBride after Kobold Camp Cleanup, like the other
+classes' letters (no letter item): A Druid's Summons (9100301) and A
+Shaman's Summons (9100302), with QuestV2 hotfix rows (bits 72950-72951).
 
 ### Every profession (008-011, `npc_profession_tutor`, ForeverProfessions)
 
