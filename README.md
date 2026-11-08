@@ -107,11 +107,22 @@ Korgath the Redeemed (Valley of Trials, by the orc and troll start).
 Shaman trainers use trainer list 10 and menu 5123, paladin ones list 29 and
 menu 4663.
 
-Northshire (027-030), where only humans start: Corwin Oakheart (druid,
-list 17, menu 4508) and Brannoc Stormward (shaman) in the abbey, and class
-quests from Marshal McBride after Kobold Camp Cleanup, like the other
-classes' letters (no letter item): A Druid's Summons (9100301) and A
-Shaman's Summons (9100302), with QuestV2 hotfix rows (bits 72950-72951).
+Northshire (027-031), where only humans start: Corwin Oakheart (druid) and
+Brannoc Stormward (shaman) by the stables outside the abbey, with the
+starting-zone trainer lists (spells up to level 6: druid list 1233 and menu
+4688, shaman list 11 and menu 4652), and class quests from Marshal McBride
+after Kobold Camp Cleanup, like the other classes' letters (no letter item):
+A Druid's Summons (9100301) and A Shaman's Summons (9100302), level 1, with
+QuestV2 hotfix rows (bits 72950-72951).
+
+Class trainers train only their own class (032, core). Upstream offered
+every class trainer's training window to everyone. `Creature::CanTrainPlayerClass`
+(from `creature_template.trainer_class`) now hides the training option and
+refuses the trainer list and purchases for other classes, who see only the
+greeting. Trainers with no class (professions, weapon masters) are
+unaffected. 032 sets `trainer_class` on 24 Classic 1.60 class trainers
+that had none (Tordrin Sternblade, Teo Hammerstorm, the Sky Elf trainers
+and others), which also lets them reset talents for their class.
 
 ### Every profession (008-011, `npc_profession_tutor`, ForeverProfessions)
 
