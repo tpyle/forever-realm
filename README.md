@@ -147,6 +147,22 @@ retail rule; Classic talents start at 10). `Player::InitTalentForLevel` in
 the core now resets below 15 only when the active talents spend more points
 than the character owns, as after lowering its level.
 
+### Bonus stats (026, `cs_bonusstats`)
+
+    .bonusstats show  [player]
+    .bonusstats grant <stat> <amount> [player]
+    .bonusstats take  <stat> <amount> [player]
+    .bonusstats set   <stat> <amount> [player]
+
+Stats: strength, agility, stamina, intellect, spirit, hit, crit, haste,
+expertise, dodge, parry, block, attackpower, spellpower, armor, health, mana
+(at most 100000 each). Bonuses are rows in `characters.character_bonus_stat`,
+applied at every login the way gear applies its stats; primary stats, armor,
+health and mana as base values (white, scaled by percentage buffs). Level-ups
+never reset these modifiers. Offline characters can be changed; it applies at
+their next login. Ratings convert at the same rate at every level in this
+client: 10 hit = 1% hit, 14 crit = 1% crit, 10 haste = 1% haste.
+
 ### Starting bags (004)
 
 Every new character gets four of item 277845, A Reasonably Large Bag.
