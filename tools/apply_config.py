@@ -46,6 +46,18 @@ SETTINGS = {
         "Classic.Shop.Enabled": "1",
         # DBErrors.log only: the console line floods the journal at startup.
         "Logger.sql.sql": "5,DBErrors",
+        # World scaling (core WorldScale.h, custom-sql 055): a creature below the player fights, shows and rewards as the
+        # player's level. As the WotLK realm's mod-worldscale: scale up only, dungeons and raids too, elites yes, bosses
+        # no, half way to the scaled kill experience, aggro as if 5 levels below. Applies to creatures as they spawn.
+        "WorldScale.Enable": "1",
+        "WorldScale.Dungeons": "1",
+        "WorldScale.Raids": "1",
+        "WorldScale.AffectElites": "1",
+        "WorldScale.AffectWorldBosses": "0",
+        "WorldScale.MinMultiplier": "0.05",
+        "WorldScale.MaxMultiplier": "20.0",
+        "WorldScale.KillXPFraction": "0.5",
+        "WorldScale.Aggro.LevelsBelow": "5",
     },
     "bnetserver.conf": {
         "LoginDatabaseInfo": DB.replace("{database}", "auth"),
