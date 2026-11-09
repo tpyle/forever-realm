@@ -323,6 +323,13 @@ with the whole record: 460 new `item_sparse` rows read from the client's
 the existing hotfix rows), and 2 existing rows changed. The script writes
 059 and its rollback; rerun it if a client update changes ItemSparse.
 
+### Quest log of 40
+
+The Forever client's quest log counts to 40 (12/40), but the core kept
+retail's 35 (`MAX_QUEST_LOG_SIZE` in `QuestDef.h`), so quests 36-40 were
+refused as "quest log full". It is 40 now. The update fields have room
+for 175.
+
 ### Starting bags (004)
 
 Every new character gets four of item 277845, A Reasonably Large Bag.
