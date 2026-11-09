@@ -309,6 +309,18 @@ gray. Summons of a scaled creature use the retail multipliers.
   recurs, `server set loglevel l root 2` logs every account data request
   and upload to `server/logs/Server.log` (`5` restores the level).
 
+### Trade Goods stack to 999 (059, `tools/reagent_stacks.py`)
+
+Every Trade Goods item (class 7) that stacks, to fewer than 999, stacks
+to 999: 462 items (cloth, leather, herbs, ore, bars, stone, gems, meat,
+dusts, thread, vials and the like). Single items (rods, Flint and Tinder,
+clams, supply crates) and the few 1000+ stacks are unchanged. Client and
+server both take stack sizes from ItemSparse, so each is a hotfix row
+with the whole record: 460 new `item_sparse` rows read from the client's
+`ItemSparse.db2` (`tools/db2read.py`, a small WDC5 reader checked against
+the existing hotfix rows), and 2 existing rows changed. The script writes
+059 and its rollback; rerun it if a client update changes ItemSparse.
+
 ### Starting bags (004)
 
 Every new character gets four of item 277845, A Reasonably Large Bag.
