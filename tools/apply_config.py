@@ -60,6 +60,10 @@ SETTINGS = {
         "WorldScale.MaxMultiplier": "20.0",
         "WorldScale.KillXPFraction": "0.5",
         "WorldScale.Aggro.LevelsBelow": "5",
+        # Quests (custom-sql 057): the client shows a quest at the player's level (never below its own); one below the player
+        # pays half way from its experience at its own level to a quest of the player's level (level 4 quest, level 6 player).
+        "WorldScale.Quests": "1",
+        "WorldScale.QuestXPFraction": "0.5",
     },
     "bnetserver.conf": {
         "LoginDatabaseInfo": DB.replace("{database}", "auth"),
