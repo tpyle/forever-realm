@@ -287,8 +287,10 @@ blend. Money and items are unchanged. Clients keep quest details in their
 Thunderbrew and 7838 Arena Grandmaster (no minimum level, which the row
 would set to the quest level).
 
-Not scaled yet: group experience splits. Summons of a scaled creature use
-the retail multipliers.
+In a group, kill experience is not split (`GroupXPSplit` 0, as on the
+WotLK realm): each member earns what they would have alone, so grouping
+costs nothing. Nothing still goes to a member for whom the creature is
+gray. Summons of a scaled creature use the retail multipliers.
 
 ### Core fixes for the Classic client
 

@@ -64,6 +64,9 @@ SETTINGS = {
         # pays half way from its experience at its own level to a quest of the player's level (level 4 quest, level 6 player).
         "WorldScale.Quests": "1",
         "WorldScale.QuestXPFraction": "0.5",
+        # Kill experience in a group: each member earns what they would alone (the WotLK realm's setting), not a share
+        # of the group's. Nothing still for a creature that is gray to them.
+        "WorldScale.GroupXPSplit": "0",
     },
     "bnetserver.conf": {
         "LoginDatabaseInfo": DB.replace("{database}", "auth"),
