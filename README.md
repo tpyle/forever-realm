@@ -297,6 +297,8 @@ gray. Summons of a scaled creature use the retail multipliers.
 - Transmog: only soulbound items were collected, and most white and grey
   gear has no binding, so vendor and looted gear never counted.
   `CollectionMgr::AddItemAppearance` collects unbound items when obtained.
+  Bind-on-equip gear is still collected only once it binds, or when it is
+  sold to a vendor or disenchanted (`AddItemAppearanceOnDisposal`).
 - Keybinds: the client uploads account data (keybinds, layout) at logout,
   but at login it keeps its own local copy when the server's time equals
   it, and that copy is stale, so keybinds reverted to defaults.
