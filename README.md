@@ -273,8 +273,22 @@ show each player their own level.
 - A scaled creature aggroes as if 5 levels below the player
   (`Aggro.LevelsBelow`), and skinning uses its real level.
 
-Not scaled yet: quest experience and quest levels, and group experience
-splits. Summons of a scaled creature use the retail multipliers.
+Quests work the same way (057): each vanilla quest of level 1-59 with a
+minimum level is on the 055 row of its level, so the client shows it at
+the player's level, never below its own, and low quests are not trivial
+(quest giver status uses the shown level). The server keeps the quest's
+fixed level, and a quest below the player pays half way
+(`QuestXPFraction`) from its experience at its own level to a quest of the
+player's level: a level 4 quest (35) to a level 7 player (65) pays 50.
+The turn-in window shows what is paid; the quest log is the client's own
+figure from the row, the full at-level amount (65), and cannot show the
+blend. Money and items are unchanged. Clients keep quest details in their
+`Cache` folder; delete it once after changing quest data. Left out: 117
+Thunderbrew and 7838 Arena Grandmaster (no minimum level, which the row
+would set to the quest level).
+
+Not scaled yet: group experience splits. Summons of a scaled creature use
+the retail multipliers.
 
 ### Core fixes for the Classic client
 
