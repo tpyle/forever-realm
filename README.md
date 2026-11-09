@@ -239,6 +239,43 @@ to the new level's base stat, which dropped these bonuses until a relog.
 `Unit::SetCreateStat` now tracks the create stat separately and replaces
 only that part.
 
+### World scaling (055-056, core `WorldScale.h`)
+
+A port of the WotLK realm's AzerothCore mod-worldscale: a creature below a
+player's level fights, shows and rewards as though it were the player's
+level, for each player separately. Scaling is up only, applies in dungeons
+and raids (never battlegrounds or arenas), includes elites, and leaves boss
+mobs alone. Settings are the `WorldScale.*` keys in `tools/apply_config.py`.
+
+The client does the per-player part itself through ContentTuning. 055 adds
+hotfix rows 8100001-8100059 (row 8100000 + N covers levels N-60), and a
+vanilla creature at level N that may scale gets row 8100000 + N when it
+spawns. The client then shows each player the creature at their own level
+(clamped to the row) and scales the health it shows by the same vanilla
+class/level table (`creature_classic_classlevelstats`) the server uses.
+Unlike retail, the creature keeps its own level and stats on the server;
+its per-target level (`Creature::GetLevelForTarget`, players and their pets
+only) drives the hit tables and the damage, health and armour multipliers.
+056 puts the custom NPCs (8103001-8103029) on the 1-60 row, so trainers
+show each player their own level.
+
+- Damage a player deals is divided by the health multiplier; the fraction
+  of a health point left over carries to the next hit, so the bar does not
+  drift.
+- Combat log overkill is worked out in the player's (scaled) points, or the
+  client would empty the bar on hits the creature survives.
+- No `SMSG_ATTACK_SWING_LANDED_LOG` for hits on a scaled creature: the
+  client put its victim health (the real, unscaled value) on the health bar
+  every so often. The combat log is complete without it.
+- Kill experience: half way (`KillXPFraction`) from what the creature pays
+  a player of its own level to what a creature of the player's level pays.
+  A level 1 creature to a level 5 player: 50 -> 70, pays 60.
+- A scaled creature aggroes as if 5 levels below the player
+  (`Aggro.LevelsBelow`), and skinning uses its real level.
+
+Not scaled yet: quest experience and quest levels, and group experience
+splits. Summons of a scaled creature use the retail multipliers.
+
 ### Core fixes for the Classic client
 
 - Transmog: only soulbound items were collected, and most white and grey
