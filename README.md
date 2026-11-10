@@ -330,6 +330,27 @@ retail's 35 (`MAX_QUEST_LOG_SIZE` in `QuestDef.h`), so quests 36-40 were
 refused as "quest log full". It is 40 now. The update fields have room
 for 175.
 
+### Pick Lock at blacksmiths (060-062)
+
+Any class with Blacksmithing can learn Pick Lock (1804) at level 16 from
+every Blacksmithing trainer (061: 1800 copper, Blacksmithing 1), and needs
+Thieves' Tools (5060) to use it. Lockpicking (skill 633) works as in vanilla.
+Learning Pick Lock starts it at 1, it caps at 5 per level, and picking a lock
+can raise it, with the same chance as Herbalism. Locks check it.
+
+- 060 (hotfixes): a SkillRaceClassInfo row (2616) for Lockpicking for every
+  class and race; the stock row (601) is rogue-only.
+- 062 (hotfixes): a SkillLineAbility copy (60021) of Pick Lock's stock row
+  (8439) for the non-rogue classes. Without it the server sent Pick Lock
+  as available but the client left it out of the trainer list, the same
+  as the weapon spells in 022.
+- Core: `SkillByLockType` had no skill for `LOCKTYPE_LOCKPICKING`, so
+  every player, rogues included, picked with skill 0 and any lock with a
+  skill requirement failed. It maps to `SKILL_LOCKPICKING` now.
+  `Player::AddSpell` starts the skill when Pick Lock is learned, since the
+  ability is trained rather than automatic. `UpdateGatherSkill` gains it
+  like Herbalism.
+
 ### Starting bags (004)
 
 Every new character gets four of item 277845, A Reasonably Large Bag.
