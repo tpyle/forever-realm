@@ -67,6 +67,13 @@ SETTINGS = {
         # Kill experience in a group: each member earns what they would alone (the WotLK realm's setting), not a share
         # of the group's. Nothing still for a creature that is gray to them.
         "WorldScale.GroupXPSplit": "0",
+        # Cross-faction: Alliance and Horde can group, guild, trade and share channels and calendar invites (the WotLK
+        # realm allows the same). The auction house is already shared by default.
+        "AllowTwoSide.Interaction.Group": "1",
+        "AllowTwoSide.Interaction.Guild": "1",
+        "AllowTwoSide.Interaction.Channel": "1",
+        "AllowTwoSide.Interaction.Calendar": "1",
+        "AllowTwoSide.Trade": "1",
     },
     "bnetserver.conf": {
         "LoginDatabaseInfo": DB.replace("{database}", "auth"),
