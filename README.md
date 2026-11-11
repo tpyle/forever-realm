@@ -400,8 +400,13 @@ Our `hotfix_data` push IDs are 81000200-81001481 (065 moved them from
 2000200-2001481). Upstream uses 2000001-2054257, and both sides delete by
 ID range. New hotfix files take IDs above 81001481.
 
-The merge also put 141 Forever recipes on trainers (43 before) through
-upstream's `2026_11_05_06_world_forever_profession_trainer_recipes.sql`.
+The merge put 49 Forever recipes on trainers (43 before) through
+upstream's `2026_11_05_06_world_forever_profession_trainer_recipes.sql`,
+which mostly copies recipes to more trainers. Of the client's 1,190 Forever
+recipes (spell ID 1,000,000 and up), 577 can be learned: 49 from trainers and
+528 from items that are sold (497), dropped (37) or quest rewards (9). The
+other 613 have no source: 524 have a recipe item that nothing sells or drops,
+and 89 have no item and no trainer.
 
 ## Configuration
 
