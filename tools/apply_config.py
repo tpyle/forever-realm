@@ -30,10 +30,11 @@ SETTINGS = {
         "WorldServerPort": "8125",
         "Realm.CfgContentSetID": "137",
         "Realm.SuperDistrictID": "2",
-        # The realm is on 70862; also let 70790 clients in. Must match bnetserver.conf, or
-        # character creation hangs on the finish button (the client's realm query gets nothing).
-        "Realm.AlsoAcceptBuilds": '"70790"',
-        # No auth key is known for 70862 (see sql/custom/auth/2026_11_07_00_auth_classic_70862.sql).
+        # Upstream's auth SQL keeps realm 70 on gamebuild 70707; newer clients join through this list and get their own
+        # message numbering per connection (Classic.Build70790.FirstBuild covers every later build). Must match
+        # bnetserver.conf, or character creation hangs on the finish button (the client's realm query gets nothing).
+        "Realm.AlsoAcceptBuilds": '"70790,70840,70862"',
+        # No auth key is known for 70840 or 70862 (sql/custom/auth/2026_11_07_*_auth_classic_708*.sql).
         "Network.SkipBuildAuthKeyCheck": "1",
         "Network.EnterEncryptedModeRegionGroup": "8",
         # Every primary profession (the tutor NPC teaches past the client's limit of two).
@@ -85,7 +86,8 @@ SETTINGS = {
         "LoginREST.LocalAddress": "wow.thomaspyle.com",
         "Realm.CfgContentSetID": "137",
         "Realm.SuperDistrictID": "2",
-        "Realm.AlsoAcceptBuilds": '"70790"',
+        # Same list as worldserver.conf (realm 70 is on 70707).
+        "Realm.AlsoAcceptBuilds": '"70790,70840,70862"',
     },
 }
 

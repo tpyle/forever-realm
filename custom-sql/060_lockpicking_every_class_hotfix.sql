@@ -6,6 +6,6 @@
 DELETE FROM skill_race_class_info WHERE ID = 2616;
 INSERT INTO skill_race_class_info (ID, SkillID, ClassMask, Flags, Availability, MinLevel, SkillTierID, RaceMask1, RaceMask2, VerifiedBuild) VALUES
   (2616, 633, 1503, 128, 0, 0, 0, 255, 3, 70790);
-DELETE FROM hotfix_data WHERE Id = 2001480;
+DELETE FROM hotfix_data WHERE Id = 81001480;
 INSERT INTO hotfix_data (Id, UniqueId, TableHash, RecordId, Status, VerifiedBuild) VALUES
-  (2001480, 2001480, 112059424, 2616, 1, 70790);
+  (81001480, 81001480, 112059424, 2616, 1, 70790);

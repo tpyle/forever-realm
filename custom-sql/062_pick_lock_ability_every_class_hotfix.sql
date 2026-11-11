@@ -7,6 +7,6 @@
 DELETE FROM skill_line_ability WHERE ID = 60021;
 INSERT INTO skill_line_ability (ID, AbilityVerb, AbilityAllVerb, SkillLine, Spell, MinSkillLineRank, ClassMask, SupercedesSpell, AcquireMethod, TrivialSkillLineRankHigh, TrivialSkillLineRankLow, Flags, NumSkillUps, UniqueBit, TradeSkillCategoryID, SkillupSkillLineID, Field_5_5_4_67090_0141, Field_5_5_4_67090_0142, RaceMask1, RaceMask2, VerifiedBuild) VALUES
   (60021, '', '', 633, 1804, 1, 1495, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 70790);
-DELETE FROM hotfix_data WHERE Id = 2001481;
+DELETE FROM hotfix_data WHERE Id = 81001481;
 INSERT INTO hotfix_data (Id, UniqueId, TableHash, RecordId, Status, VerifiedBuild) VALUES
-  (2001481, 2001481, 4282664694, 60021, 1, 70790);
+  (81001481, 81001481, 4282664694, 60021, 1, 70790);

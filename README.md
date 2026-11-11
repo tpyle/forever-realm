@@ -1,7 +1,7 @@
 # WoW Forever realm
 
 A TrinityCore realm for the WoW Forever client (Classic 1.60.1, builds 70790
-and 70862), built from the `forever` branch of advocaite/TrinityCore. It runs
+to 70862), built from the `forever` branch of advocaite/TrinityCore. It runs
 on the same machine as the WotLK realm in `/opt/wow/classic`, sharing its
 MySQL server. Rules for working on it are in `AGENTS.md`.
 
@@ -14,7 +14,7 @@ MySQL server. Rules for working on it are in `AGENTS.md`.
 | `server/` | Install: `bin/`, generated `etc/`, extracted `data/`, `logs/` |
 | `custom-sql/` | Every change to the databases, numbered, with rollbacks |
 | `client-addon/` | Addons the client needs, copied to `_forever_/Interface/AddOns/` |
-| `tools/` | `apply_config.py`, systemd units, the certificate hook |
+| `tools/` | `apply_config.py`, upstream-merge SQL scripts, systemd units, the certificate hook |
 | `client/` | Not kept: copy the game client here again to re-extract maps (gitignored) |
 
 ## Login and ports
@@ -39,13 +39,14 @@ used at first and has been deleted; `bnetserver.{cert,key}.pem` in
 
 ## Client builds
 
-The realm moved to build 70862 with upstream's
-`sql/custom/auth/2026_11_07_00_auth_classic_70862.sql`. Clients still on
-70790 are let in by `Realm.AlsoAcceptBuilds = "70790"`, which has to be in
-both config files: bnetserver uses it for the realm list, and worldserver
-for the realm queries the client makes in game. With it only in
+Upstream's auth files (`sql/custom/auth/*_auth_classic_*.sql`) set the
+realm's build; since 0.1.34 it is 70707. Clients on 70790, 70840 and 70862
+are let in by `Realm.AlsoAcceptBuilds = "70790,70840,70862"`, which has to
+be in both config files: bnetserver uses it for the realm list, and
+worldserver for the realm queries the client makes in game. With it only in
 bnetserver.conf, logging in worked but character creation never finished
-(the character was saved, the button stayed greyed out).
+(the character was saved, the button stayed greyed out). Add a new client
+build to the list in `tools/apply_config.py`.
 
 ## Customizations
 
@@ -363,6 +364,44 @@ can raise it, with the same chance as Herbalism. Locks check it.
 ### Starting bags (004)
 
 Every new character gets four of item 277845, A Reasonably Large Bag.
+
+## Upstream merges
+
+`trunk` is upstream `forever` plus our commits. WoW Forever 0.1.34 was
+merged on 2026-11-11 (merge commit `b1a583054d`; 417 new SQL files). Step 3 was
+rehearsed on copies of the databases (`*_merge`) beforehand. The rehearsal
+never started a server, so steps 4 and 5 only turned up during the deploy:
+
+1. `git merge upstream/forever` in `TrinityCore/`, build `worldserver` and
+   `bnetserver`, and copy the new `.conf.dist` files from
+   `build/bin/Release/etc/` to `server/etc/` before `tools/apply_config.py`.
+2. `saveall`, stop both servers, `mysqldump` the four databases into
+   `server/backups/`.
+3. `tools/apply_upstream_sql.sh` applies the upstream files not yet applied,
+   in the updater's order, and records them in `<db>.updates`. It works
+   around two problems: our `hotfix_data` rows were inside upstream's ID
+   range (065, below), and `2026_10_31_00_hotfixes_spell_duration_per_level.sql`
+   adds a column the database already has (it would stop the server at
+   startup).
+4. Install the binaries and start the worldserver once. Its updater re-runs
+   every upstream custom file that changed since it was applied, and then
+   every custom file after that one, whether it changed or not. In 0.1.34
+   that was about 500 auth and world files, rerun on top of ours.
+5. Stop it, run `tools/rerun_custom_sql.sh` (it lists the tables that
+   changed: those upstream had overwritten), start again.
+
+Upstream overwrote these in 0.1.34: quest ContentTuning (057),
+`quest_classic_money`, the Sky Elf trainer's faction (052) and her NPCs'
+ContentTuning (056), and Pick Lock at blacksmith trainer 376 (061). The
+updater also re-runs upstream files whose content changed, so these could be
+overwritten again at any later merge. Step 5 puts them back.
+
+Our `hotfix_data` push IDs are 81000200-81001481 (065 moved them from
+2000200-2001481). Upstream uses 2000001-2054257, and both sides delete by
+ID range. New hotfix files take IDs above 81001481.
+
+The merge also put 141 Forever recipes on trainers (43 before) through
+upstream's `2026_11_05_06_world_forever_profession_trainer_recipes.sql`.
 
 ## Configuration
 
