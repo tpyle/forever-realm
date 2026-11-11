@@ -192,6 +192,15 @@ Fizzle first could not be clicked: the server hides the gossip flag from an
 NPC with no gossip menu in the database, even when a script provides the
 menu. 009 gives him one.
 
+Profession caps follow the learned rank (Apprentice 75, Journeyman 150,
+Expert 225, Artisan 300). Every profession has a Classic child line
+(2937-2948, the one whose recipes the window shows) with `ParentTierIndex`
+4, and `Player::_LoadSkills` used that to raise the profession to Artisan at
+every login, so even an Apprentice had a cap of 300. The core skips child
+lines there now (SetSkill already did), and 064 (characters, worldserver
+stopped) sets saved caps back to 75 x the highest rank spell the character
+knows.
+
 ### Talent points beyond levelling (024-025, `cs_talentgrant`)
 
     .talents show  [player]            granted points, and total / spent / unspent
