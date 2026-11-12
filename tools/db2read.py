@@ -2,8 +2,8 @@
 """Minimal WDC5 (.db2) reader: yields (id, [field values]) with arrays as lists and strings decoded.
 
 Only what the Classic 1.60 client files need: inline-free strings (offsets into the string block), the id list,
-the copy table, and the storage types None / Bitpacked / CommonData / BitpackedIndexed / BitpackedIndexedArray /
-BitpackedSigned, and files with an offset map (variable sized records, strings inline). Field types come from the core's
+the copy table, the relationship map (a parent ID such as SpellXSpellVisual.SpellID, read as the last field), the
+storage types None / Bitpacked / CommonData / BitpackedIndexed / BitpackedIndexedArray / BitpackedSigned, and files with an offset map (variable sized records, strings inline). Field types come from the core's
 DB2Metadata.h (`meta` below): ("int"|"float"|"string"|"short"|"byte", array size, signed).
 """
 import struct
@@ -43,6 +43,10 @@ def read(path, meta):
             c += additional
         common.append(values)
 
+    # a parent field kept in the relationship map (e.g. SpellXSpellVisual.SpellID) is the metadata's last field, not in the records
+    relationship = len(meta) == field_count + 1
+    if relationship:
+        meta = meta[:-1]
     if len(meta) != field_count:
         raise ValueError(f"{path}: {field_count} fields in the file, {len(meta)} in the metadata")
 
@@ -102,6 +106,13 @@ def read(path, meta):
         ids_start = string_start + strings_size
         ids = struct.unpack_from(f"<{count}I", data, ids_start) if id_list_size else None
         copy_start = ids_start + id_list_size
+        parents = {}
+        if relationship and relationship_size:
+            rel_start = copy_start + copy_count * 8
+            entries = struct.unpack_from("<I", data, rel_start)[0]
+            for k in range(entries):
+                foreign_id, index = struct.unpack_from("<2I", data, rel_start + 12 + k * 8)
+                parents[index] = foreign_id
         for r in range(count):
             rec_off = records_start + r * record_size
             record = data[rec_off:rec_off + record_size] + b"\0" * 8
@@ -142,6 +153,8 @@ def read(path, meta):
                 values.append(out if arr > 1 else out[0])
             if rid is None:
                 rid = values[id_index]
+            if relationship:
+                values.append(parents.get(r, 0))
             rows[rid] = values
         for k in range(copy_count):
             new_id, old_id = struct.unpack_from("<2I", data, copy_start + k * 8)

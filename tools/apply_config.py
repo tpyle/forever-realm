@@ -68,6 +68,16 @@ SETTINGS = {
         # Kill experience in a group: each member earns what they would alone (the WotLK realm's setting), not a share
         # of the group's. Nothing still for a creature that is gray to them.
         "WorldScale.GroupXPSplit": "0",
+        # Bonus loot (core BonusLoot.h, custom-sql 066-067): Tomes that grant +1 of a bonus stat or a talent point, rolled once
+        # per kill. Stat Tome: percent chance by the creature's kind (boss = dungeon encounter, dungeon or world boss).
+        # Tome of Talent: its own roll from anything. None from gray creatures, critters, minus mobs, totems or summons.
+        "BonusLoot.Enable": "1",
+        "BonusLoot.StatTome.Normal": "1.0",
+        "BonusLoot.StatTome.Elite": "2.0",
+        "BonusLoot.StatTome.Rare": "2.0",
+        "BonusLoot.StatTome.RareElite": "3.0",
+        "BonusLoot.StatTome.Boss": "10.0",
+        "BonusLoot.TalentTome": "0.1",
         # Cross-faction: Alliance and Horde can group, guild, trade and share channels and calendar invites (the WotLK
         # realm allows the same). The auction house is already shared by default.
         "AllowTwoSide.Interaction.Group": "1",

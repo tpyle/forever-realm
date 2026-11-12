@@ -54,5 +54,6 @@ before touching it. This file is the short list of rules and traps.
 - A scripted gossip NPC still needs a `creature_template_gossip` row, or the
   server hides its gossip flag and it cannot be clicked.
 - `playercreateinfo_spell_custom` only applies with `PlayerStart.AllSpells = 1`.
-- Custom creature entries start at 8103001 and spawn guids at 26300001.
-  Check the highest used before adding more.
+- Custom creature entries start at 8103001 and spawn guids at 26300001;
+  custom items and spells (hotfix-only, 066) at 8104001. Check the highest
+  used before adding more.

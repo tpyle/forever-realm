@@ -249,6 +249,45 @@ to the new level's base stat, which dropped these bonuses until a relog.
 `Unit::SetCreateStat` now tracks the create stat separately and replaces
 only that part.
 
+### Tomes from enemies (066-067, core `BonusLoot.h`)
+
+Eighteen soulbound consumables grant the two bonuses above when used: the
+Tome of Talent (8104001, epic) gives one talent point as `.talents grant 1`
+does, and a Tome per bonus stat (8104002-8104018, rare: Strength through
+Mana, in the order of the list above) gives +1 of that stat. A Tome is
+refused, and kept, once the character has all 249 granted points or a stat
+is at its cap.
+
+Every kill rolls once, whoever and however many tapped it. A stat Tome (one
+of the 17, picked evenly) drops at 1% from normal enemies, 2% from elites
+and rares, 3% from rare elites and 10% from bosses (a dungeon encounter, a
+creature flagged as a dungeon or world boss, or classification 3). The Tome
+of Talent rolls on its own at 0.1% from anything. Nothing drops from pets,
+summons, totems, critters, triggers, minus mobs, trivial creatures,
+creatures flagged no-loot, or a creature that is gray to any of its tappers
+(world scaling makes most lower creatures the player's level, so this
+mostly leaves out bosses far below the group). The Tomes go in the corpse
+loot under the group's loot rules where the corpse is shared, else in the
+personal loot of one tapper picked at random. Rates are the `BonusLoot.*`
+keys in `tools/apply_config.py`.
+
+The items and their spells are new IDs that exist only as hotfixes (066,
+written by `tools/bonus_tomes.py`): Item, ItemSparse, ItemEffect and
+ItemXItemEffect, and SpellName, SpellMisc, SpellEffect, SpellXSpellVisual
+and the Spell record (the tooltip's "Use:" text, a `hotfix_blob`), all
+nine tables with the same ID per Tome. The item records copy Scroll of
+Strength (954). Each spell is a 1.5 second self-cast with the visual and
+sound of learning a recipe (SpellVisual 222, from spell 402265 that recipes
+cast; moving or being interrupted keeps the Tome), and one dummy effect
+that its script
+(067: `spell_bonus_tome_talent` in `cs_talentgrant.cpp`,
+`spell_bonus_tome_stat` in `cs_bonusstats.cpp`) turns into the reward. The
+script saves the character after the cast, once the Tome is used up, so a
+crash cannot leave both the reward and the Tome. When the records change,
+the script moves the `hotfix_data` push IDs to a new range (a client does
+not fetch a record again under a push ID it has cached); 066 deletes the
+earlier ranges.
+
 ### World scaling (055-056, core `WorldScale.h`)
 
 A port of the WotLK realm's AzerothCore mod-worldscale: a creature below a
