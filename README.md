@@ -379,6 +379,28 @@ retail's 35 (`MAX_QUEST_LOG_SIZE` in `QuestDef.h`), so quests 36-40 were
 refused as "quest log full". It is 40 now. The update fields have room
 for 175.
 
+### Exploration quests (068-070)
+
+- 068: Rough Wolf Pelt (Rough Wolf Pelts, 91751) also drops from Gray Forest
+  Wolf (1922), at the Prowler's 40%. Upstream made the same fix in its
+  2026_11_10_90 file.
+- 069: upstream's 2026_10_25_02 gave 19 exploration quests a placeholder
+  objective (area trigger -1, IDs 9000xxxx). Its later 2026_11_12_03 adds
+  the live ones but skips a quest that already has one, so 13 kept the
+  placeholder. 069 puts in the live rows: The Missing Diplomat (1265) now
+  counts trigger 1667, which the client sends, instead of 302. It also
+  removes the placeholder from Resupplying the Excavation (273). That quest
+  has no trigger, so the placeholder blocked its turn-in.
+- 070 (`tools/quest_poi_explore.py`): these quests' `quest_poi` (WotLK data)
+  had only the turn-in point, so the map showed nothing until the area was
+  explored. 070 adds an objective area around each quest's trigger.
+- A client that cached a quest before its objectives changed keeps the old
+  copy. With no objectives the quest looks complete and the turn-in marker
+  shows early. Deleting the client's `Cache` folder fixes it.
+- Not done: How Big a Threat? (984) can't be completed, because none of its
+  triggers (231-238) exist in the client. The Hidden Chamber (2240) has no map
+  area: its trigger is inside Uldaman (map 70).
+
 ### Pick Lock at blacksmiths (060-062)
 
 Any class with Blacksmithing can learn Pick Lock (1804) at level 16 from
