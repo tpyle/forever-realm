@@ -429,6 +429,14 @@ never started a server, so steps 4 and 5 only turned up during the deploy:
 5. Stop it, run `tools/rerun_custom_sql.sh` (it lists the tables that
    changed: those upstream had overwritten), start again.
 
+The 2026-11-12 merge (client build 70888, 120 commits, 92 SQL files, merge
+`4aa749fe90`) changed no older upstream custom file, so step 4 re-ran nothing.
+Upstream made the quest log size a setting, `Quests.LogSize` (default 35);
+`apply_config.py` sets it to 40. Resolve a conflict by hunk
+(`git merge-file --theirs`), not with `git checkout --theirs`, which takes the
+whole file and drops our other changes in it (it dropped
+`CollectionMgr::AddItemAppearanceOnDisposal`, a link error).
+
 Upstream overwrote these in 0.1.34: quest ContentTuning (057),
 `quest_classic_money`, the Sky Elf trainer's faction (052) and her NPCs'
 ContentTuning (056), and Pick Lock at blacksmith trainer 376 (061). The

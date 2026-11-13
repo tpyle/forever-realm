@@ -33,8 +33,8 @@ SETTINGS = {
         # Upstream's auth SQL keeps realm 70 on gamebuild 70707; newer clients join through this list and get their own
         # message numbering per connection (Classic.Build70790.FirstBuild covers every later build). Must match
         # bnetserver.conf, or character creation hangs on the finish button (the client's realm query gets nothing).
-        "Realm.AlsoAcceptBuilds": '"70790,70840,70862"',
-        # No auth key is known for 70840 or 70862 (sql/custom/auth/2026_11_07_*_auth_classic_708*.sql).
+        "Realm.AlsoAcceptBuilds": '"70790,70840,70862,70888"',
+        # No auth key is known for 70840, 70862 or 70888 (sql/custom/auth/2026_11_*_auth_classic_708*.sql).
         "Network.SkipBuildAuthKeyCheck": "1",
         "Network.EnterEncryptedModeRegionGroup": "8",
         # Every primary profession (the tutor NPC teaches past the client's limit of two).
@@ -42,6 +42,8 @@ SETTINGS = {
         # Learns playercreateinfo_spell_custom at creation, e.g. Holy Light for new paladin races.
         "PlayerStart.AllSpells": "1",
         "PlayerSave.Stats.MinLevel": "1",
+        # The Forever client's quest log holds 40 (upstream's default is 35, the most MAX_QUEST_LOG_SIZE allows is 40).
+        "Quests.LogSize": "40",
         "AccountInstancesPerHour": "5",
         "Classic.GuildFinder": "1",
         "Classic.Shop.Enabled": "1",
@@ -97,7 +99,7 @@ SETTINGS = {
         "Realm.CfgContentSetID": "137",
         "Realm.SuperDistrictID": "2",
         # Same list as worldserver.conf (realm 70 is on 70707).
-        "Realm.AlsoAcceptBuilds": '"70790,70840,70862"',
+        "Realm.AlsoAcceptBuilds": '"70790,70840,70862,70888"',
     },
 }
 
