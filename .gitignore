@@ -15,3 +15,4 @@
 /.db_pass
 
 __pycache__/
+.claude/settings.local.json
