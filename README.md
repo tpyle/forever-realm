@@ -457,6 +457,11 @@ never started a server, so steps 4 and 5 only turned up during the deploy:
 5. Stop it, run `tools/rerun_custom_sql.sh` (it lists the tables that
    changed: those upstream had overwritten), start again.
 
+The 2026-11-13 merge (client build 70938, 73 commits, 64 SQL files, merge
+`fae33cbedb`) re-ran 8 hotfix files at the first start, and
+`rerun_custom_sql.sh` then put back 069's `quest_objectives` rows.
+`apply_config.py` adds 70938 to `Realm.AlsoAcceptBuilds`.
+
 The 2026-11-12 merge (client build 70888, 120 commits, 92 SQL files, merge
 `4aa749fe90`) changed no older upstream custom file, so step 4 re-ran nothing.
 Upstream made the quest log size a setting, `Quests.LogSize` (default 35);
