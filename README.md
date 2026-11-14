@@ -288,7 +288,7 @@ the script moves the `hotfix_data` push IDs to a new range (a client does
 not fetch a record again under a push ID it has cached); 066 deletes the
 earlier ranges.
 
-### Class stances (071-072, core `ClassStance.h`)
+### Class stances (071-073, core `ClassStance.h`, ForeverStances)
 
 A character can play other classes. Every class trainer sells its class's
 stance (Warrior Stance through Druid Stance, 8104019-8104027) to the other
@@ -323,13 +323,48 @@ first login after 071 showed the saved rage as mana once. 072 (world) adds
 the trainer rows and binds `spell_class_stance` (`class_stance.cpp`).
 `ClassStance.Enable = 0` in `tools/apply_config.py` turns it all off.
 
+#### The ForeverStances addon (073, `client-addon/ForeverStances`)
+
+Players copy `client-addon/ForeverStances` to
+`_forever_/Interface/AddOns/ForeverStances`. It talks to the server by
+addon whispers to the player themselves (prefix `FSTANCE`), which the
+server answers (`class_stance_playerscript` in `class_stance.cpp`) and
+never passes on. `/stance ping` tests the link.
+
+- **Stance talents.** Every learned stance class has its own talent trees,
+  with as many points as the real class owns (levels, the Talented perk,
+  `Rate.Talent`, `.talents grant` and Tomes of Talent), spent by the
+  Classic rules (5 points in a tree per tier, prerequisites). The server
+  checks and keeps the picks (073: `characters.character_class_stance_talent`)
+  and applies each talent as its rank 1 spell with the rank as a trait, as
+  the real class's talents are. `ClassStance.TalentsAlwaysActive = 1`
+  keeps them on at all times; 0 applies a class's talents only in its
+  stance. In a class stance the talent key and the talent micro button
+  open that class's trees (an override binding and a button over the
+  micro button, only while a stance is active); out of one, the client's
+  own window. `/stance talents` opens them too, `/stance scale` or the
+  corner grip sizes the window (for the whole account).
+- **A bar per stance.** Changing stance saves the main bar (slots 1-12)
+  and the stance and form bars (73-120) and puts back that stance's last
+  layout; a new stance starts empty. A checkbox in the panel turns it off.
+- **Greyed spells.** Abilities of a learned class other than the one the
+  player fights as are greyed out on the action bars. Visual only: an
+  addon cannot stop a secure action button, so the server still refuses
+  them.
+- **The panel** (`/stance`): the learned stances with buttons to take or
+  leave them, talent points per class, and every class, armor and weapon
+  skill (the client's own list hides those its data gives other classes).
+
+`tools/class_stance_addon_data.py` writes the addon's `Data/Talents.lua`
+(the trees, from Talent.db2 and TalentTab.db2) and `Data/SpellClasses.lua`
+(the class of each spell, from SpellClassOptions).
+
 Known limits:
 - The client starts the cast bar for another class's spell before the
-  server refuses it; a later addon may grey those out.
-- The action bar does not change page with a class stance.
-- Stance classes get no talents (an addon talent window is planned).
+  server refuses it.
 - The client's skill list leaves out skills its data gives only to other
-  classes (a priest's Mail), though the server has them.
+  classes (a priest's Mail), though the server has them; the addon's
+  panel shows them.
 - Hunter pets and warlock demons are untested with stances.
 
 ### World scaling (055-056, core `WorldScale.h`)

@@ -1,0 +1,15 @@
+## Interface: 16001
+## Title: Forever Stances
+## Notes: Class stances: talents for your stance classes, an action bar per stance, other classes' spells greyed out, and a stance panel. /stance
+## Version: 1.0
+## SavedVariables: ForeverStancesAccountDB
+## SavedVariablesPerCharacter: ForeverStancesDB
+
+Data\Talents.lua
+Data\SpellClasses.lua
+Core.lua
+Net.lua
+Usable.lua
+Bars.lua
+Talents.lua
+Panel.lua
