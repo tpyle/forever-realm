@@ -1,5 +1,6 @@
--- The talent window for stance classes: the three trees of a learned stance class side by side, drawn from the client's
--- talent data (Data/Talents.lua). Picks go to the server, which checks them, keeps them and sends the trees back.
+-- The talent window for stance classes: the three trees of a learned stance class side by side, WoW Forever's trait trees as
+-- the client's own talent window shows them (Data/Talents.lua, the same trees the server checks picks against). Picks go to
+-- the server, which checks them, keeps them and sends the trees back.
 local _, ns = ...
 
 local BUTTON, GAP = 34, 10
@@ -105,8 +106,8 @@ end
 local function CanLearn(classId, tab, talent)
     local ranks = Ranks(classId)
     local rank = ranks[talent.id] or 0
-    if rank >= #talent.ranks or PointsLeft(classId) <= 0 then return false end
-    if SpentInTab(classId, tab) < talent.tier * 5 then return false end
+    if rank >= talent.max or PointsLeft(classId) <= 0 then return false end
+    if SpentInTab(classId, tab) < talent.need then return false end
     for _, prereq in ipairs(talent.prereqs) do
         if (ranks[prereq[1]] or 0) < prereq[2] then return false end
     end
@@ -134,27 +135,42 @@ local function SpellName(spell)
     if GetSpellInfo then return (GetSpellInfo(spell)) end
 end
 
+-- the text of a talent at a rank, scaled as the client's own talent window scales it (the rank spells are unscaled templates)
+local function TraitText(entry, rank)
+    if entry and entry > 0 and C_Traits and C_Traits.GetTraitDescription then
+        local ok, text = pcall(C_Traits.GetTraitDescription, entry, rank)
+        if ok and type(text) == "string" and text ~= "" then return text end
+    end
+end
+
+-- the talent's text at a rank: the client's scaled trait text, else the rank spell's own (talents with no trait)
+local function RankText(talent, rank)
+    return TraitText(talent.entry, rank) or SpellText(talent.spell)
+end
+
 local function ShowTooltip(button)
     local talent, classId = button.talent, selected
     local rank = Ranks(classId)[talent.id] or 0
     GameTooltip:SetOwner(button, "ANCHOR_RIGHT")
-    GameTooltip:SetSpellByID(talent.ranks[math.max(rank, 1)])
-    GameTooltip:AddLine(string.format("Rank %d/%d", rank, #talent.ranks), 1, 1, 1)
-    if rank > 0 and rank < #talent.ranks then
-        local nextText = SpellText(talent.ranks[rank + 1])
+    GameTooltip:SetText(SpellName(talent.spell) or "?", 1, 1, 1)
+    GameTooltip:AddLine(string.format("Rank %d/%d", rank, talent.max), 1, 1, 1)
+    local text = RankText(talent, math.max(rank, 1))
+    if text then GameTooltip:AddLine(text, 1, 0.82, 0, true) end
+    if rank > 0 and rank < talent.max then
+        local nextText = RankText(talent, rank + 1)
         if nextText then
             GameTooltip:AddLine(" ")
             GameTooltip:AddLine("Next rank:", 1, 1, 1)
             GameTooltip:AddLine(nextText, 1, 0.82, 0, true)
         end
     end
-    if SpentInTab(classId, button.tab) < talent.tier * 5 then
-        GameTooltip:AddLine(string.format("Requires %d points in %s", talent.tier * 5, button.tab.name), 1, 0.1, 0.1)
+    if SpentInTab(classId, button.tab) < talent.need then
+        GameTooltip:AddLine(string.format("Requires %d points in %s", talent.need, button.tab.name), 1, 0.1, 0.1)
     end
     for _, prereq in ipairs(talent.prereqs) do
         if (Ranks(classId)[prereq[1]] or 0) < prereq[2] then
             local other = button.tree.buttons[prereq[1]]
-            local name = other and SpellName(other.talent.ranks[1]) or "another talent"
+            local name = other and SpellName(other.talent.spell) or "another talent"
             GameTooltip:AddLine(string.format("Requires %d point%s in %s", prereq[2], prereq[2] > 1 and "s" or "", name), 1, 0.1, 0.1)
         end
     end
@@ -267,11 +283,11 @@ local function Draw()
             button.talent, button.tab, button.tree = talent, tab, tree
             button:ClearAllPoints()
             button:SetPoint("TOPLEFT", GAP + talent.column * (BUTTON + GAP), -GAP - talent.tier * (BUTTON + GAP))
-            button.icon:SetTexture(SpellIcon(talent.ranks[1]) or 134400)
+            button.icon:SetTexture(SpellIcon(talent.spell) or 134400)
             local rank = ranks[talent.id] or 0
-            button.rank:SetText(string.format("%d/%d", rank, #talent.ranks))
+            button.rank:SetText(string.format("%d/%d", rank, talent.max))
             local can = CanLearn(selected, tab, talent)
-            local maxed = rank >= #talent.ranks
+            local maxed = rank >= talent.max
             button.icon:SetDesaturated(rank == 0 and not can)
             if maxed then
                 button.rank:SetTextColor(1, 0.82, 0)

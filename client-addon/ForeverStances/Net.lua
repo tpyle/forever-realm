@@ -84,6 +84,8 @@ function handlers.STATE(args)
     end
     state.known = true
     ns.Fire("STATE")
+    -- the server is the authority on the active stance, in combat too (ns.auraStance may not be read yet just after login)
+    if ns.auraStance ~= nil then ns.SetActiveStance(state.active) end
 end
 
 function handlers.TALB(args)

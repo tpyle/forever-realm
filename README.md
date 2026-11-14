@@ -351,14 +351,21 @@ addon whispers to the player themselves (prefix `FSTANCE`), which the
 server answers (`class_stance_playerscript` in `class_stance.cpp`) and
 never passes on. `/stance ping` tests the link.
 
-- **Stance talents.** Every learned stance class has its own talent trees,
-  with as many points as the real class owns (levels, the Talented perk,
+- **Stance talents.** Every learned stance class has WoW Forever's talent
+  trees for it: the trait trees the client's own talent window shows (075,
+  `world.class_stance_talent`), not the old Talent.db2, which Forever
+  changed (Improved Devotion Aura removed, Divine Intellect added, other
+  ranks). Rows ask the points in their tab the tree sets; prerequisites
+  must be at full rank. Three nodes the data parks off the grid (two
+  hunter, one priest, each replaced by a hotfixed node) are left out. 076
+  moved saved picks to node entries. Each stance class has its own pool,
+  as many points as the real class owns (levels, the Talented perk,
   `Rate.Talent`, `.talents grant` and Tomes of Talent; or one shared pool,
-  see the settings below), spent by the
-  Classic rules (5 points in a tree per tier, prerequisites). The server
-  checks and keeps the picks (073: `characters.character_class_stance_talent`)
-  and applies each talent as its rank 1 spell with the rank as a trait, as
-  the real class's talents are. `ClassStance.TalentsAlwaysActive = 1`
+  see the settings below). The server checks and keeps the picks (073:
+  `characters.character_class_stance_talent`) and applies each talent as
+  its trait's spell with the rank as a trait, as the real class's talents
+  are; a new rank takes the talent off and on again, or a passive aura
+  (Divine Intellect) kept its first rank's amount. `ClassStance.TalentsAlwaysActive = 1`
   keeps them on at all times; 0 applies a class's talents only in its
   stance. In a class stance the talent key and the talent micro button
   open that class's trees (an override binding and a button over the

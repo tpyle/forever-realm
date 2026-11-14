@@ -1,4 +1,4 @@
--- Written by tools/class_stance_addon_data.py from the client's DB2 files; do not edit.
+-- Written by tools/class_stance_addon_data.py from the client's DB2 files and the hotfixes database; do not edit.
 
 local _, ns = ...
 -- [spell] = class of its spell family

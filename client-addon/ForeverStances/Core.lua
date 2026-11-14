@@ -28,18 +28,32 @@ function ns.Print(text)
     DEFAULT_CHAT_FRAME:AddMessage("|cff69ccf0Forever Stances:|r " .. text)
 end
 
--- the class stance active right now, read from the player's auras (0 for none)
+-- the class stance active right now (0 for none). The server says so in every STATE message (it sends one at each stance change);
+-- the auras are only read out of combat: in combat the client hides aura details from addons and answers with a stand-in
+-- value, which read as "Warrior Stance is active" (a paladin's seal in combat swapped in the warrior bar and greyed out every
+-- paladin spell until combat ended, 2026-11-14).
 function ns.ActiveStanceFromAuras()
+    if InCombatLockdown() or not (C_UnitAuras and C_UnitAuras.GetPlayerAuraBySpellID) then
+        return ns.auraStance or ns.state.active or 0
+    end
     for i, classId in ipairs(ns.CLASSES) do
-        local spell = ns.FIRST_STANCE_SPELL + i - 1
-        local aura
-        if C_UnitAuras and C_UnitAuras.GetPlayerAuraBySpellID then
-            local ok, result = pcall(C_UnitAuras.GetPlayerAuraBySpellID, spell)
-            aura = ok and result or nil
+        local ok, aura = pcall(C_UnitAuras.GetPlayerAuraBySpellID, ns.FIRST_STANCE_SPELL + i - 1)
+        if ok and aura ~= nil and not (issecretvalue and issecretvalue(aura)) then
+            local id = aura.spellId
+            if id ~= nil and not (issecretvalue and issecretvalue(id)) and id == ns.FIRST_STANCE_SPELL + i - 1 then
+                return classId
+            end
         end
-        if aura then return classId end
     end
     return 0
+end
+
+-- a new active stance, from the server or the auras: tell the rest of the addon once
+function ns.SetActiveStance(active)
+    if active ~= ns.auraStance then
+        ns.auraStance = active
+        ns.Fire("STANCE_CHANGED", active)
+    end
 end
 
 -- listeners: ns.On("STATE", fn) and so on; ns.Fire runs them
@@ -93,11 +107,8 @@ frame:SetScript("OnEvent", function(_, event, arg1, arg2)
         afterCombat = {}
         for _, fn in pairs(pending) do fn() end
     elseif event == "UNIT_AURA" then
-        local active = ns.ActiveStanceFromAuras()
-        if active ~= ns.auraStance then
-            ns.auraStance = active
-            ns.Fire("STANCE_CHANGED", active)
-        end
+        -- in combat the server's STATE says when the stance changes (ActiveStanceFromAuras)
+        if not InCombatLockdown() then ns.SetActiveStance(ns.ActiveStanceFromAuras()) end
     end
 end)
 
