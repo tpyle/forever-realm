@@ -323,6 +323,26 @@ first login after 071 showed the saved rage as mana once. 072 (world) adds
 the trainer rows and binds `spell_class_stance` (`class_stance.cpp`).
 `ClassStance.Enable = 0` in `tools/apply_config.py` turns it all off.
 
+Class quests, gossip and pets count learned stances too: a quest's class
+mask (`SatisfyQuestClass`) and every `CONDITION_CLASS` condition on a player
+(quests, gossip options, phases, scripts) use the real class plus the
+learned stance classes, so a warrior with Hunter Stance gets the hunter's
+taming quests. With Hunter Stance a character can tame (the taming
+effects, the tamed pet), use stable masters and pet untraining; a pet keeps
+the type it was tamed or summoned as rather than the owner's class's; with
+Warlock Stance a demon is a permanent pet and Enslave Demon works. Call
+Pet, Dismiss Pet and the demon summons are hunter or warlock spells, so
+they cast only in that stance; a pet already out stays. 25 conditions
+negate a class ("not a hunter"); a stance holder now fails those too.
+
+Learning a stance also teaches its classes' automatic abilities of every
+skill line the character holds, at login too
+(`Player::LearnClassStanceSkillSpells`). It must skip lines held at 0:
+`mSkillStatus` keeps those for other races' languages and the like, and
+teaching their abilities once gave a human ten Language spells without
+the skills, after which the client counted no language and refused every
+chat line and command (2026-11-14).
+
 #### The ForeverStances addon (073, `client-addon/ForeverStances`)
 
 Players copy `client-addon/ForeverStances` to
@@ -333,7 +353,8 @@ never passes on. `/stance ping` tests the link.
 
 - **Stance talents.** Every learned stance class has its own talent trees,
   with as many points as the real class owns (levels, the Talented perk,
-  `Rate.Talent`, `.talents grant` and Tomes of Talent), spent by the
+  `Rate.Talent`, `.talents grant` and Tomes of Talent; or one shared pool,
+  see the settings below), spent by the
   Classic rules (5 points in a tree per tier, prerequisites). The server
   checks and keeps the picks (073: `characters.character_class_stance_talent`)
   and applies each talent as its rank 1 spell with the rank as a trait, as
@@ -367,6 +388,35 @@ never passes on. `/stance ping` tests the link.
   leave them, talent points per class, and every class, armor and weapon
   skill (the client's own list hides those its data gives other classes).
 
+Settings (`tools/apply_config.py`; all need a worldserver restart):
+
+| Setting | Default | |
+|---|---|---|
+| `ClassStance.Enable` | 1 | 0 turns the stances off (they stay learned but do nothing). |
+| `ClassStance.TalentsAlwaysActive` | 1 | 0 applies a stance class's talents only in its stance. |
+| `ClassStance.AllowInCombat` | 0 | 1 lets stances be changed in combat. |
+| `ClassStance.SharedTalentPoints` | 0 | 1 makes one pool for the real class and every stance class. |
+
+Limits of the two off-by-default settings:
+- `AllowInCombat = 1`: the server switches the resource, stats, spell
+  rules and (with `TalentsAlwaysActive = 0`) talents at once, as a druid's
+  forms do. The client does not let an addon change action bars, key
+  bindings or secure buttons in combat, so a stance taken in combat keeps
+  the previous stance's bar, talent and spellbook keys and panel buttons
+  until combat ends, when the addon catches up. The stance spellbook does
+  not open in combat. Stance talents are still learned and reset out of
+  combat only.
+- `SharedTalentPoints = 1`: a stance class's trees get what the real class
+  and the other stances have not spent. The client works out the real
+  class's points itself (from levels and granted points, the same for
+  every character of a level), so its talent window shows points spent on
+  stances as unspent; the server refuses an "Apply Changes" that spends
+  them, with a chat message saying how many are left. Taking real talents
+  back is always allowed. A character who already spends more than the
+  shared pool when it is turned on keeps every pick, but can learn no
+  more until enough are reset. `.talents take` and `.talents set` count
+  both pools together.
+
 `tools/class_stance_addon_data.py` writes the addon's `Data/Talents.lua`
 (the trees, from Talent.db2 and TalentTab.db2) and `Data/SpellClasses.lua`
 (the class of each spell, from SpellClassOptions).
@@ -377,7 +427,7 @@ Known limits:
 - The client's skill list leaves out skills its data gives only to other
   classes (a priest's Mail), though the server has them; the addon's
   panel shows them.
-- Hunter pets and warlock demons are untested with stances.
+- Hunter pets and warlock demons are only lightly tested with stances.
 
 ### World scaling (055-056, core `WorldScale.h`)
 

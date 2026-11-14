@@ -70,6 +70,11 @@ SETTINGS = {
         "ClassStance.Enable": "1",
         # 1: a stance class's talents (ForeverStances addon, custom-sql 073) apply at all times; 0: only in its stance
         "ClassStance.TalentsAlwaysActive": "1",
+        # 1: stances can be changed in combat too (the ForeverStances addon still swaps bars and keys only after combat)
+        "ClassStance.AllowInCombat": "0",
+        # 1: one pool of talent points for the real class and all stance classes (the client's own talent window then shows
+        # points spent on stances as unspent; the server refuses to spend them there). 0: a full pool per class.
+        "ClassStance.SharedTalentPoints": "0",
         "WorldScale.Aggro.LevelsBelow": "5",
         # Quests (custom-sql 057): the client shows a quest at the player's level (never below its own); one below the player
         # pays half way from its experience at its own level to a quest of the player's level (level 4 quest, level 6 player).
