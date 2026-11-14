@@ -4,7 +4,8 @@ local _, ns = ...
 
 local PREFIX = "FSTANCE"
 -- our own requests come back to us as the whisper's echo: only the server's answers are read
-local ANSWERS = { PONG = true, STATE = true, TALB = true, TAL = true, TALE = true, SKLB = true, SKL = true, SKLE = true, ERR = true }
+local ANSWERS = { PONG = true, STATE = true, TALB = true, TAL = true, TALE = true, SKLB = true, SKL = true, SKLE = true,
+                  SPLB = true, SPLS = true, SPL = true, SPLE = true, ERR = true }
 
 local registered = false
 local function Register()
@@ -132,6 +133,39 @@ function handlers.SKLE()
         return a.name < b.name
     end)
     ns.Fire("SKILLS")
+end
+
+-- the stance spellbook: SPLB <class>, SPLS <class> <skill:name;...>, SPL <class> <spell:skill,...>, SPLE <class>
+local spellParts = {}
+function handlers.SPLB(args)
+    spellParts[tonumber(args)] = { skills = {}, spells = {} }
+end
+
+function handlers.SPLS(args)
+    local classId, list = args:match("^(%d+) (.*)$")
+    local part = spellParts[tonumber(classId)]
+    if not part then return end
+    for entry in list:gmatch("[^;]+") do
+        local id, name = entry:match("^(%d+):(.*)$")
+        if id then part.skills[tonumber(id)] = name end
+    end
+end
+
+function handlers.SPL(args)
+    local classId, list = args:match("^(%d+) (.*)$")
+    local part = spellParts[tonumber(classId)]
+    if not part then return end
+    for spell, skill in list:gmatch("(%d+):(%d+)") do
+        table.insert(part.spells, { id = tonumber(spell), skill = tonumber(skill) })
+    end
+end
+
+function handlers.SPLE(args)
+    local classId = tonumber(args)
+    ns.spellbooks = ns.spellbooks or {}
+    ns.spellbooks[classId] = spellParts[classId]
+    spellParts[classId] = nil
+    ns.Fire("SPELLS", classId)
 end
 
 function handlers.ERR(args)

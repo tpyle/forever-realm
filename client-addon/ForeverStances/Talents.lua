@@ -338,94 +338,28 @@ ns.On("STATE", function()
     Draw()
 end)
 
--- The talent key (N) and the talent micro button: in a class stance they toggle that class's trees instead of the real
--- class's talent window. While a class stance is active the talent key is bound to our window (an override binding,
--- cleared when the stance ends) and a button over the talent micro button takes its clicks. Out of a stance both are the
--- client's own, untouched. Stances change only out of combat, when bindings may change.
-local MICRO_BUTTONS = { "TalentMicroButton", "PlayerSpellsMicroButton" }
+-- The talent key (N) and the talent micro button: in a class stance they toggle that class's trees (Intercept.lua)
 local CLIENT_FRAMES = { "PlayerTalentFrame", "TalentFrame", "ClassTalentFrame", "PlayerSpellsFrame" }
 
-local function ToggleStanceTalents()
-    local active = ns.auraStance or ns.ActiveStanceFromAuras()
-    if not active or active == 0 then return end
-    if frame:IsShown() and selected == active then
-        frame:Hide()
-    else
-        for _, name in ipairs(CLIENT_FRAMES) do
-            local f = _G[name]
-            if f and f:IsShown() then HideUIPanel(f) end
-        end
-        ns.ShowTalents(active)
-    end
-end
-
-local toggle = CreateFrame("Button", "ForeverStancesTalentToggle", UIParent)
-toggle:SetScript("OnClick", ToggleStanceTalents)
-
-local bindingOwner = CreateFrame("Frame")
-local lastSignature
-local overlay
-
-local function MicroButton()
-    for _, name in ipairs(MICRO_BUTTONS) do
-        local b = _G[name]
-        if b and b:IsShown() then return b end
-    end
-    for _, name in ipairs(MICRO_BUTTONS) do
-        if _G[name] then return _G[name] end
-    end
-end
-
-local function UpdateIntercept()
-    local active = ns.auraStance or ns.ActiveStanceFromAuras()
-    local on = active and active ~= 0 and ns.Talents[active] ~= nil
-
-    -- changing a binding fires UPDATE_BINDINGS again: only change them when something did
-    local keys = { GetBindingKey("TOGGLETALENTS") }
-    local signature = (on and "on:" or "off:") .. table.concat(keys, ",")
-    if signature ~= lastSignature then
-        lastSignature = signature
-        ClearOverrideBindings(bindingOwner)
-        if on then
-            for _, key in ipairs(keys) do
-                SetOverrideBindingClick(bindingOwner, true, key, "ForeverStancesTalentToggle")
+ns.Intercept{
+    name = "Talent", binding = "TOGGLETALENTS", microButtons = { "TalentMicroButton", "PlayerSpellsMicroButton" },
+    title = "Stance Talents", what = "talents",
+    enabled = function(active) return ns.Talents[active] ~= nil end,
+    toggle = function(active)
+        if frame:IsShown() and selected == active then
+            frame:Hide()
+        else
+            for _, name in ipairs(CLIENT_FRAMES) do
+                local f = _G[name]
+                if f and f:IsShown() then HideUIPanel(f) end
             end
+            ns.ShowTalents(active)
         end
-    end
-
-    local micro = MicroButton()
-    if micro and not overlay then
-        overlay = CreateFrame("Button", nil, micro)
-        overlay:SetAllPoints(micro)
-        overlay:RegisterForClicks("AnyUp")
-        overlay:SetScript("OnClick", ToggleStanceTalents)
-        overlay:SetScript("OnEnter", function(self)
-            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-            GameTooltip:SetText("Stance Talents")
-            GameTooltip:AddLine("Your " .. ns.ClassName(ns.auraStance or 0) .. " talents", 1, 1, 1)
-            GameTooltip:Show()
-        end)
-        overlay:SetScript("OnLeave", GameTooltip_Hide)
-    end
-    if overlay then
-        overlay:SetFrameLevel(micro:GetFrameLevel() + 10)
-        overlay:SetShown(on)
-    end
-end
-
-local function Refresh()
-    ns.AfterCombat("talent-intercept", UpdateIntercept)
-end
-
-local events = CreateFrame("Frame")
-events:RegisterEvent("PLAYER_LOGIN")
-events:RegisterEvent("UPDATE_BINDINGS")
-events:SetScript("OnEvent", Refresh)
-ns.On("ENTERING_WORLD", function() C_Timer.After(3, Refresh) end)
+    end,
+}
 
 -- taking a class stance with our window open shows the new class's trees; leaving the stance closes it
 ns.On("STANCE_CHANGED", function(active)
-    Refresh()
     if active ~= 0 then
         if frame:IsShown() then ns.ShowTalents(active) end
     elseif frame:IsShown() then

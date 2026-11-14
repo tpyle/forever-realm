@@ -344,9 +344,21 @@ never passes on. `/stance ping` tests the link.
   micro button, only while a stance is active); out of one, the client's
   own window. `/stance talents` opens them too, `/stance scale` or the
   corner grip sizes the window (for the whole account).
-- **A bar per stance.** Changing stance saves the main bar (slots 1-12)
-  and the stance and form bars (73-120) and puts back that stance's last
-  layout; a new stance starts empty. A checkbox in the panel turns it off.
+- **A bar per stance.** The main bar (slots 1-12) and the stance and form
+  bars (73-120) have a layout per class stance and one for the real class.
+  Every change to one of those slots is saved at once for the stance the
+  player is in, and taking a stance puts back its layout (a new stance
+  starts empty). Nothing is saved at the stance change itself: an earlier
+  version saved the whole bar then, keyed by a remembered "stance on
+  screen", and lost layouts when that went out of step after a reload.
+  A checkbox in the panel turns it off; `/stance bars reset` forgets them.
+- **The stance spellbook.** In a class stance the spellbook key and micro
+  button (intercepted as the talent ones are) open that class's spells,
+  sent by the server (`SPELLS`), a tab per class skill line after the
+  client spellbook's General tab, the highest rank of each unless "All
+  ranks" is ticked. Clicking casts (on release, so a drag does not),
+  dragging puts the spell on a bar. `/stance spells` opens it too. Out of
+  combat only, as its buttons are secure.
 - **Greyed spells.** Abilities of a learned class other than the one the
   player fights as are greyed out on the action bars. Visual only: an
   addon cannot stop a secure action button, so the server still refuses

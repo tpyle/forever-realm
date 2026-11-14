@@ -1,25 +1,48 @@
--- An action bar layout per class stance: leaving a stance saves what is on the main bar (slots 1-12) and the stance and
--- form bars (73-120), entering one puts back what was there last time in that stance. A stance's first layout is empty.
--- Stances change only out of combat, when an addon may move actions.
+-- An action bar layout per class stance (and one for the real class): the main bar (slots 1-12) and the stance and form
+-- bars (73-120). Every change you make to one of those slots is saved at once for the stance you are in; taking another
+-- stance puts back that stance's layout. Nothing is saved when the stance changes, so a layout can never be stored under
+-- the wrong stance. A stance with no layout yet starts empty. Stances change only out of combat, when an addon may move
+-- actions.
 local _, ns = ...
 
-local SLOTS = {}
+local SLOTS, TRACKED = {}, {}
 for slot = 1, 12 do table.insert(SLOTS, slot) end
 for slot = 73, 120 do table.insert(SLOTS, slot) end
+for _, slot in ipairs(SLOTS) do TRACKED[slot] = true end
+
+local ready = false         -- after a login or /reload, until the auras have settled
+local restoring = false     -- our own moves fire ACTIONBAR_SLOT_CHANGED too: not the player's changes
 
 local function Key(classId)
-    return classId == 0 and "own" or tostring(classId)
+    return (classId == nil or classId == 0) and "own" or tostring(classId)
 end
 
-local function Save(key)
-    local layout = {}
-    for _, slot in ipairs(SLOTS) do
-        local ok, actionType, id, subType = pcall(GetActionInfo, slot)
-        if ok and actionType and id and not (issecretvalue and issecretvalue(id)) then
-            layout[slot] = { actionType, id, subType }
-        end
+local function ActiveKey()
+    return Key(ns.auraStance or ns.ActiveStanceFromAuras())
+end
+
+local function Read(slot)
+    local ok, actionType, id, subType = pcall(GetActionInfo, slot)
+    if ok and actionType and id and not (issecretvalue and issecretvalue(id)) then
+        return { actionType, id, subType }
     end
-    ns.db.layouts[key] = layout
+end
+
+local function Layout(key)
+    ns.db.layouts[key] = ns.db.layouts[key] or {}
+    return ns.db.layouts[key]
+end
+
+-- the player put something on a slot or took it off: that slot of the active stance's layout
+local function SaveSlot(slot)
+    if not ready or restoring or not ns.db or not ns.db.separateBars or not TRACKED[slot] then return end
+    if InCombatLockdown() then return end
+    Layout(ActiveKey())[slot] = Read(slot) or false
+end
+
+local function SaveAll(key)
+    local layout = Layout(key)
+    for _, slot in ipairs(SLOTS) do layout[slot] = Read(slot) or false end
 end
 
 local function PickUp(entry)
@@ -36,13 +59,18 @@ local function PickUp(entry)
 end
 
 local function Restore(key)
-    local layout = ns.db.layouts[key] or {}
+    local layout = ns.db.layouts[key]
+    if not layout then
+        -- the first time in this stance: an empty bar to fill (the real class keeps what is there)
+        if key == "own" then SaveAll(key) return end
+        layout = Layout(key)
+    end
+    restoring = true
     ClearCursor()
     for _, slot in ipairs(SLOTS) do
-        local want = layout[slot]
-        local ok, actionType, id = pcall(GetActionInfo, slot)
-        local have = ok and actionType and { actionType, id } or nil
-        local same = (want == nil and have == nil) or (want and have and want[1] == have[1] and want[2] == have[2])
+        local want = layout[slot] or nil
+        local have = Read(slot)
+        local same = (not want and not have) or (want and have and want[1] == have[1] and want[2] == have[2])
         if not same then
             if have then
                 PickupAction(slot)
@@ -50,48 +78,52 @@ local function Restore(key)
             end
             if want then
                 PickUp(want)
-                if GetCursorInfo() then
-                    PlaceAction(slot)
-                end
+                if GetCursorInfo() then PlaceAction(slot) end
                 ClearCursor()
             end
         end
     end
+    -- the client reports the moves a moment later
+    C_Timer.After(0.5, function() restoring = false end)
+    ns.RefreshTint()
 end
 
-local ready = false             -- auras settle after login; until then the bars stay those we logged out with
-
-local function Switch(newClass)
-    if not ready then return end
-    if not ns.db or not ns.db.separateBars then
-        if ns.db then ns.db.current = Key(newClass) end
-        return
-    end
-    local newKey = Key(newClass)
-    local oldKey = ns.db.current
-    if oldKey == newKey then return end
-    ns.AfterCombat("bars", function()
-        if ns.db.current ~= oldKey then return end
-        if oldKey then Save(oldKey) end
-        Restore(newKey)
-        ns.db.current = newKey
-        ns.RefreshTint()
-    end)
+local function Apply()
+    if not ready or not ns.db or not ns.db.separateBars then return end
+    ns.AfterCombat("bars", function() Restore(ActiveKey()) end)
 end
 
-ns.On("STANCE_CHANGED", Switch)
+local events = CreateFrame("Frame")
+events:RegisterEvent("ACTIONBAR_SLOT_CHANGED")
+events:SetScript("OnEvent", function(_, _, slot) SaveSlot(slot) end)
 
--- at login the bars are those of the stance we logged out in
-ns.On("ENTERING_WORLD", function()
+ns.On("STANCE_CHANGED", Apply)
+
+-- after a login or /reload: once the auras have settled, the active stance's layout (no change if it is on the bars)
+ns.On("ENTERING_WORLD", function(fresh)
+    if not fresh then return end
     ready = false
     C_Timer.After(3, function()
         ns.auraStance = ns.ActiveStanceFromAuras()
-        if ns.db then ns.db.current = Key(ns.auraStance) end
         ready = true
+        if ns.db then ns.db.current = nil end    -- no longer used (the old bars kept the stance on screen there)
+        Apply()
     end)
 end)
 
 function ns.SetSeparateBars(on)
     ns.db.separateBars = on
-    ns.db.current = Key(ns.ActiveStanceFromAuras())
+    -- turned on: what is on the bars now is the active stance's layout
+    if on then SaveAll(ActiveKey()) end
+end
+
+-- /stance bars reset: forget every stance's layout; the bars on screen become the active stance's
+function ns.ResetBars()
+    ns.db.layouts = {}
+    SaveAll(ActiveKey())
+    if ActiveKey() == "own" then
+        ns.Print("stance bar layouts cleared: your class keeps the bar you see, each stance starts empty.")
+    else
+        ns.Print("stance bar layouts cleared: this stance keeps the bar you see. Run it outside a class stance to keep your own class's bar instead.")
+    end
 end

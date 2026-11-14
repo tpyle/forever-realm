@@ -70,7 +70,7 @@ frame:RegisterEvent("ADDON_LOADED")
 frame:RegisterEvent("PLAYER_ENTERING_WORLD")
 frame:RegisterEvent("PLAYER_REGEN_ENABLED")
 frame:RegisterUnitEvent("UNIT_AURA", "player")
-frame:SetScript("OnEvent", function(_, event, arg1)
+frame:SetScript("OnEvent", function(_, event, arg1, arg2)
     if event == "ADDON_LOADED" and arg1 == "ForeverStances" then
         ForeverStancesDB = ForeverStancesDB or {}
         local db = ForeverStancesDB
@@ -86,7 +86,8 @@ frame:SetScript("OnEvent", function(_, event, arg1)
         db.talentScale = nil
         ns.Fire("LOADED")
     elseif event == "PLAYER_ENTERING_WORLD" then
-        ns.Fire("ENTERING_WORLD")
+        -- arg1 isInitialLogin, arg2 isReloadingUi (a loading screen between zones has neither)
+        ns.Fire("ENTERING_WORLD", (arg1 or arg2) and true or false)
     elseif event == "PLAYER_REGEN_ENABLED" then
         local pending = afterCombat
         afterCombat = {}
@@ -108,6 +109,12 @@ SlashCmdList.FOREVERSTANCES = function(msg)
         ns.Ping()
     elseif msg == "talents" or msg == "t" then
         ns.ToggleTalents()
+    elseif msg == "spells" or msg == "s" then
+        local active = ns.auraStance or ns.ActiveStanceFromAuras()
+        local classId = active ~= 0 and active or ns.state.learned[1]
+        if classId then ns.ShowSpellbook(classId) else ns.Print("no class stance learned yet.") end
+    elseif msg == "bars reset" then
+        if InCombatLockdown() then ns.Print("not in combat.") else ns.ResetBars() end
     elseif msg:match("^scale") then
         local value = tonumber(msg:match("^scale%s+([%d%.]+)"))
         if value then
@@ -116,7 +123,7 @@ SlashCmdList.FOREVERSTANCES = function(msg)
             ns.Print("/stance scale <0.6-2>: the size of the talent window (or drag its bottom right corner). Default 1.25.")
         end
     elseif msg == "help" then
-        ns.Print("/stance: the stance panel. /stance talents: the talent window. /stance scale <0.6-2>: its size. /stance ping: test the link to the server.")
+        ns.Print("/stance: the stance panel. /stance talents: the talent window. /stance spells: the stance spellbook. /stance scale <0.6-2>: its size. /stance bars reset: forget the stance bar layouts. /stance ping: test the link to the server.")
     else
         ns.TogglePanel()
     end

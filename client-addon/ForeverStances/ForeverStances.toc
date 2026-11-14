@@ -11,5 +11,7 @@ Core.lua
 Net.lua
 Usable.lua
 Bars.lua
+Intercept.lua
 Talents.lua
+Spellbook.lua
 Panel.lua
