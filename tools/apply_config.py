@@ -65,6 +65,9 @@ SETTINGS = {
         "WorldScale.MinMultiplier": "0.05",
         "WorldScale.MaxMultiplier": "20.0",
         "WorldScale.KillXPFraction": "0.5",
+        # Class stances (ClassStance.h, custom-sql 071-072): class trainers sell their class's stance to the other classes;
+        # 0 turns the stances off (they stay learned but do nothing, and trainers stop selling them).
+        "ClassStance.Enable": "1",
         "WorldScale.Aggro.LevelsBelow": "5",
         # Quests (custom-sql 057): the client shows a quest at the player's level (never below its own); one below the player
         # pays half way from its experience at its own level to a quest of the player's level (level 4 quest, level 6 player).

@@ -288,6 +288,50 @@ the script moves the `hotfix_data` push IDs to a new range (a client does
 not fetch a record again under a push ID it has cached); 066 deletes the
 earlier ranges.
 
+### Class stances (071-072, core `ClassStance.h`)
+
+A character can play other classes. Every class trainer sells its class's
+stance (Warrior Stance through Druid Stance, 8104019-8104027) to the other
+classes for 1 gold from level 10. Once it is bought, that class's trainers
+show their full list (the window refreshes at once) and the character
+learns the class's spells there from scratch, as its own class does. It
+also gets the class's skill lines, armor and weapon skills, and the
+abilities they teach on their own (a priest with Warrior Stance gets
+Heroic Strike, Battle Stance and the Mail proficiency).
+
+The stance is a button on the stance bar, after the class's own stances.
+Out of combat, casting it makes the character fight as that class: its
+resource (rage, energy and combo points, or mana) and its attack power,
+crit, dodge, parry and regeneration formulas. Casting it again, or
+cancelling the buff, returns to the real class. A class's abilities (by
+spell family) work only as that class: "Requires Mage Stance." outside it,
+"Leave Mage Stance first." for the real class's abilities inside it.
+Spells of no class (racials, Shoot, first aid), items, procs and passives
+are not checked, and buffs stay on when switching. Gear is the best of the
+known classes at all times (class-restricted items and armor types), and
+base mana is the highest of them.
+
+The real class keeps the talents, the specialization, the talent window
+and what other players see. The stance is a plain aura with a
+SpellShapeshift row (StanceBarOrder 11-19), not a shapeshift form, so it
+combines with warrior stances and druid forms. 071 (hotfixes, written by
+`tools/class_stances.py`) holds the spells, copied from Retribution Aura
+(7294), and ChrClassesXPowerTypes rows that give every class a slot for
+mana, rage, energy and combo points, the way the druid has them. Slots are
+sorted by power type, so a warrior's rage moved from slot 0 to slot 1: the
+first login after 071 showed the saved rage as mana once. 072 (world) adds
+the trainer rows and binds `spell_class_stance` (`class_stance.cpp`).
+`ClassStance.Enable = 0` in `tools/apply_config.py` turns it all off.
+
+Known limits:
+- The client starts the cast bar for another class's spell before the
+  server refuses it; a later addon may grey those out.
+- The action bar does not change page with a class stance.
+- Stance classes get no talents (an addon talent window is planned).
+- The client's skill list leaves out skills its data gives only to other
+  classes (a priest's Mail), though the server has them.
+- Hunter pets and warlock demons are untested with stances.
+
 ### World scaling (055-056, core `WorldScale.h`)
 
 A port of the WotLK realm's AzerothCore mod-worldscale: a creature below a
