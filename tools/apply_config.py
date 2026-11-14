@@ -59,6 +59,9 @@ SETTINGS = {
         "WorldScale.Raids": "1",
         "WorldScale.AffectElites": "1",
         "WorldScale.AffectWorldBosses": "0",
+        # A scaled creature fights and shows as 2 levels below the player (never below its own level), not as an equal one:
+        # an equal level creature made every green one as dangerous as in vanilla at level.
+        "WorldScale.LevelsBelow": "2",
         "WorldScale.MinMultiplier": "0.05",
         "WorldScale.MaxMultiplier": "20.0",
         "WorldScale.KillXPFraction": "0.5",

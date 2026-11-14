@@ -321,6 +321,12 @@ show each player their own level.
   A level 1 creature to a level 5 player: 50 -> 70, pays 60.
 - A scaled creature aggroes as if 5 levels below the player
   (`Aggro.LevelsBelow`), and skinning uses its real level.
+- `LevelsBelow` (2 here, 0-10) scales creatures to that many levels below
+  the player instead of to their level, never below their own: at the
+  player's level every fight was an equal-level one and two at once nearly
+  killed a level 11. The creature gets the 055 row starting that much
+  higher with ScalingLevelDelta -N, so the client shows and scales it the
+  same way; the aggro offset counts those levels as already below.
 
 Quests work the same way (057): each vanilla quest of level 1-59 with a
 minimum level is on the 055 row of its level, so the client shows it at
