@@ -148,6 +148,10 @@ local function RankText(talent, rank)
     return TraitText(talent.entry, rank) or SpellText(talent.spell)
 end
 
+-- the client loads a spell's data the first time it is asked for: a text that comes back empty is asked for and the tooltip
+-- drawn again when it arrives (SPELL_DATA_LOAD_RESULT), so the first hover need not be repeated
+local waitingButton
+
 local function ShowTooltip(button)
     local talent, classId = button.talent, selected
     local rank = Ranks(classId)[talent.id] or 0
@@ -155,7 +159,17 @@ local function ShowTooltip(button)
     GameTooltip:SetText(SpellName(talent.spell) or "?", 1, 1, 1)
     GameTooltip:AddLine(string.format("Rank %d/%d", rank, talent.max), 1, 1, 1)
     local text = RankText(talent, math.max(rank, 1))
-    if text then GameTooltip:AddLine(text, 1, 0.82, 0, true) end
+    if text then
+        GameTooltip:AddLine(text, 1, 0.82, 0, true)
+        if waitingButton == button then waitingButton = nil end
+    elseif waitingButton ~= button then
+        waitingButton = button
+        if C_Spell and C_Spell.RequestLoadSpellData then pcall(C_Spell.RequestLoadSpellData, talent.spell) end
+        -- and once more shortly in case the client sends no event
+        C_Timer.After(0.3, function()
+            if waitingButton == button and GameTooltip:IsOwned(button) then ShowTooltip(button) end
+        end)
+    end
     if rank > 0 and rank < talent.max then
         local nextText = RankText(talent, rank + 1)
         if nextText then
@@ -206,7 +220,10 @@ local function TalentButton(tree, n)
     button.rank:SetPoint("BOTTOMRIGHT", 4, -4)
     button:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square", "ADD")
     button:SetScript("OnEnter", ShowTooltip)
-    button:SetScript("OnLeave", GameTooltip_Hide)
+    button:SetScript("OnLeave", function()
+        waitingButton = nil
+        GameTooltip:Hide()
+    end)
     button:SetScript("OnClick", function(self)
         if InCombatLockdown() then
             UIErrorsFrame:AddMessage("Not in combat.", 1, 0.1, 0.1)
@@ -347,6 +364,15 @@ end
 function ns.ToggleTalents()
     if frame:IsShown() then frame:Hide() else ns.ShowTalents() end
 end
+
+local spellData = CreateFrame("Frame")
+spellData:RegisterEvent("SPELL_DATA_LOAD_RESULT")
+spellData:SetScript("OnEvent", function(_, _, spellId)
+    local button = waitingButton
+    if button and button.talent and button.talent.spell == spellId and GameTooltip:IsOwned(button) then
+        ShowTooltip(button)
+    end
+end)
 
 ns.On("TALENTS", Draw)
 ns.On("STATE", function()
