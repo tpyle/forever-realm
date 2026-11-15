@@ -78,6 +78,8 @@ SETTINGS = {
         # Spells of a known class that are cast in any stance (or none), space separated; 75 Auto Shot. The ForeverStances
         # addon reads this line too (tools/class_stance_addon_data.py) and does not grey them.
         "ClassStance.AnyStanceSpells": "75",
+        # Recipes also use reagents from the character's bank (bank tab and bank bags), from anywhere, as on retail (Spell.cpp).
+        "Crafting.ReagentsFromBank": "1",
         "WorldScale.Aggro.LevelsBelow": "5",
         # Quests (custom-sql 057): the client shows a quest at the player's level (never below its own); one below the player
         # pays half way from its experience at its own level to a quest of the player's level (level 4 quest, level 6 player).
