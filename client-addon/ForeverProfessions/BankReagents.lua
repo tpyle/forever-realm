@@ -1,7 +1,7 @@
 -- Crafting from the bank (server setting Crafting.ReagentsFromBank): the server lets a recipe use reagents in the bank tab
 -- and bank bags, but the client's recipe windows only count the bags, so they show 0 available and disable Create. This
 -- recounts with the bank after Blizzard's own code has drawn the window: the [n] in the recipe list, the reagent counts,
--- the Create and Create All buttons. The tradeskill window (TradeSkillFrame) and Enchanting's (CraftFrame) are handled.
+-- the Create and Create All buttons (TradeSkillFrame). Enchanting's window (CraftFrame): the selected recipe only.
 
 local function ItemCount(link)
     if not link then return nil end
@@ -66,6 +66,7 @@ end
 -- TradeSkillFrame (Blizzard_TradeSkillUI)
 
 local function TradeSelection(id)
+    if not id or id < 1 or id > (GetNumTradeSkills() or 0) then return end
     local skillName, skillType = GetTradeSkillInfo(id)
     if not skillName or skillType == "header" then return end
     local creatable = RedrawReagents(TRADE, id, "TradeSkillReagent")
@@ -76,8 +77,10 @@ end
 
 local function TradeUpdate()
     local offset = FauxScrollFrame_GetOffset(TradeSkillListScrollFrame)
+    local numSkills = GetNumTradeSkills() or 0
     for i = 1, TRADE_SKILLS_DISPLAYED do
         local index = i + offset
+        if index > numSkills then break end
         local button = _G["TradeSkillSkill" .. i]
         local skillName, skillType = GetTradeSkillInfo(index)
         if button and button:IsShown() and skillName and skillType ~= "header" then
@@ -91,7 +94,7 @@ local function TradeUpdate()
         end
     end
     local selected = GetTradeSkillSelectionIndex()
-    if selected and selected > 0 then
+    if selected and selected > 0 and selected <= numSkills then
         local made = Available(TRADE, selected)
         if made then TradeSkillFrame.numAvailable = made end
     end
@@ -100,27 +103,15 @@ end
 ---------------------------------------------------------------------------------------------------------------------------
 -- CraftFrame (Blizzard_CraftUI: Enchanting; Beast Training has no reagents and is left alone)
 
+-- Only the selected recipe is recounted here, and only after checking its index: unlike the tradeskill window, the list's
+-- [n] counts are left to the client (asking the craft API about every visible entry was suspected of crashing the client).
 local function CraftSelection(id)
+    if not id or id < 1 or id > (GetNumCrafts() or 0) then return end
     local craftName, _, craftType = GetCraftInfo(id)
     if not craftName or craftType == "header" or craftType == "used" then return end
     local creatable = RedrawReagents(CRAFT, id, "CraftReagent")
     if creatable == nil then return end
     CraftCreateButton:SetEnabled(creatable)
-end
-
-local function CraftUpdate()
-    local offset = FauxScrollFrame_GetOffset(CraftListScrollFrame)
-    for i = 1, CRAFTS_DISPLAYED do
-        local index = i + offset
-        local button = _G["Craft" .. i]
-        local craftName, _, craftType = GetCraftInfo(index)
-        if button and button:IsShown() and craftName and craftType ~= "header" then
-            local made = Available(CRAFT, index)
-            if made then
-                button:SetText(" " .. craftName .. (made > 0 and (" [" .. made .. "]") or ""))
-            end
-        end
-    end
 end
 
 ---------------------------------------------------------------------------------------------------------------------------
@@ -135,7 +126,6 @@ local function Hook()
     if not hooked.craft and CraftFrame_SetSelection then
         hooked.craft = true
         hooksecurefunc("CraftFrame_SetSelection", CraftSelection)
-        hooksecurefunc("CraftFrame_Update", CraftUpdate)
     end
 end
 
