@@ -354,6 +354,17 @@ Pet, Dismiss Pet and the demon summons are hunter or warlock spells, so
 they cast only in that stance; a pet already out stays. 25 conditions
 negate a class ("not a hunter"); a stance holder now fails those too.
 
+The client decides from the real class whether a pet is a hunter pet
+(`HasPetUI()` gives true, false to a warrior with Hunter Stance), and then
+hides the pet's happiness and loyalty: `C_PetInfo.GetPetHappiness` and
+`GetPetLoyalty` return nothing. Only the stable showed them, and only as
+they were when the pet was loaded: the server now updates the summoned
+pet's stable happiness on each 12 s loyalty tick
+(`Player::UpdateStablePetHappiness`). ForeverStances' `PetHappiness.lua`
+reads the stable values for the summoned pet and shows them on the pet
+frame's and the pet tab's happiness faces (their own methods only, not
+`HasPetUI`) and in the pet tab's level line.
+
 Learning a stance also teaches its classes' automatic abilities of every
 skill line the character holds, at login too
 (`Player::LearnClassStanceSkillSpells`). It must skip lines held at 0:
