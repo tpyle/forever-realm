@@ -469,7 +469,7 @@ show each player their own level.
   A level 1 creature to a level 5 player: 50 -> 70, pays 60.
 - A scaled creature aggroes as if 5 levels below the player
   (`Aggro.LevelsBelow`), and skinning uses its real level.
-- `LevelsBelow` (2 here, 0-10) scales creatures to that many levels below
+- `LevelsBelow` (0 here since 2026-11-15, was 2; 0-10) scales creatures to that many levels below
   the player instead of to their level, never below their own: at the
   player's level every fight was an equal-level one and two at once nearly
   killed a level 11. The creature gets the 055 row starting that much
