@@ -189,6 +189,16 @@ shows only two, so the `ForeverProfessions` addon lists them all (`/prof`)
 and creates a macro for each one with a window. Both work in game, and
 normal trainers sell the higher ranks of a third or later profession.
 
+Recipes can use reagents in the bank (bank tab and bank bags), from
+anywhere, as on retail: `Crafting.ReagentsFromBank = 1` makes the server's
+reagent check count the bank (`Spell::CheckItems`); taking the reagents
+already looked there after the bags. The client's recipe windows count only
+the bags and disabled Create, so `ForeverProfessions/BankReagents.lua`
+recounts with `GetItemCount(item, true)` after Blizzard's code draws the
+tradeskill and Enchanting windows: the `[n]` in the list, the reagent
+counts, Create and Create All. The warband (account) bank is not
+implemented in the core.
+
 Fizzle first could not be clicked: the server hides the gossip flag from an
 NPC with no gossip menu in the database, even when a script provides the
 menu. 009 gives him one.

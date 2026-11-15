@@ -1,7 +1,8 @@
 ## Interface: 16001
 ## Title: Forever Professions
-## Notes: Lists every profession you know, with a button to open it. Use /prof to show or hide.
-## Version: 1.1
+## Notes: Lists every profession you know, with a button to open it (/prof). Recipe windows count reagents in the bank.
+## Version: 1.2
 ## SavedVariablesPerCharacter: ForeverProfessionsMacros
 
 ForeverProfessions.lua
+BankReagents.lua
