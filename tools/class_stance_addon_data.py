@@ -291,13 +291,16 @@ def main():
         "-- Apply to the `characters` database with worldserver stopped. The old Talent.db2 picks cannot be rebuilt from the\n"
         "-- node entries: this clears the stance talents (every point comes back).\nDELETE FROM character_class_stance_talent;\n")
 
-    # the greyed spells
+    # the greyed spells, less those cast in any stance (ClassStance.AnyStanceSpells in tools/apply_config.py)
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from apply_config import SETTINGS
+    any_stance = {int(x) for x in SETTINGS["worldserver.conf"]["ClassStance.AnyStanceSpells"].split()}
     options, _ = db2read.read(DBC / "SpellClassOptions.db2", meta("SpellClassOptions"))
     spells = {}
     for row in options.values():
         values = flat(row)
         class_id = FAMILY_CLASS.get(values[2])
-        if class_id and values[0]:
+        if class_id and values[0] and values[0] not in any_stance:
             spells[values[0]] = class_id
     out = [HEADER, "local _, ns = ...", "-- [spell] = class of its spell family", "ns.SpellClasses = {"]
     items = sorted(spells.items())

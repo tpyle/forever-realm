@@ -75,6 +75,9 @@ SETTINGS = {
         # 1: one pool of talent points for the real class and all stance classes (the client's own talent window then shows
         # points spent on stances as unspent; the server refuses to spend them there). 0: a full pool per class.
         "ClassStance.SharedTalentPoints": "0",
+        # Spells of a known class that are cast in any stance (or none), space separated; 75 Auto Shot. The ForeverStances
+        # addon reads this line too (tools/class_stance_addon_data.py) and does not grey them.
+        "ClassStance.AnyStanceSpells": "75",
         "WorldScale.Aggro.LevelsBelow": "5",
         # Quests (custom-sql 057): the client shows a quest at the player's level (never below its own); one below the player
         # pays half way from its experience at its own level to a quest of the player's level (level 4 quest, level 6 player).
