@@ -198,8 +198,13 @@ Professions window, which counts reagents through
 client function `ReagentsFromBankAllowed()` is true, and it is false here
 (no server setting changes it). `ForeverProfessions/BankReagents.lua`
 replaces that global with one returning true, so the window counts the bank
-and enables Create. The `[n]` in the recipe list is counted inside the
-client and still shows bags only. (A first version hooked the classic
+and enables Create. The client also checks the reagents itself before it sends a craft
+("Missing reagent"), so when the bags alone lack them the addon asks the
+server instead: an addon whisper to yourself, prefix `FPROF` (`CRAFT <spell>`
+or `ENCH <spell> <item guid>`), which `scripts/Custom/bank_crafting.cpp` casts
+with the server's normal checks. Create All asks for one cast at a time, the
+next when the last succeeded. The `[n]` in the recipe list is counted inside
+the client and still shows bags only. (A first version hooked the classic
 TradeSkillFrame, which this client does not use.) The warband (account) bank is not
 implemented in the core.
 
