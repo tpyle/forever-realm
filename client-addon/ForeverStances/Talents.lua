@@ -427,11 +427,16 @@ local CLASS_TREES = { [1] = 1117, [2] = 1100, [3] = 1091, [4] = 1111, [5] = 1114
 local function Diagnose(configID, treeID)
     local ok, nodes = pcall(C_Traits.GetTreeNodes, treeID)
     if not ok or not nodes then ns.Print("tree " .. treeID .. ": no nodes (" .. tostring(nodes) .. ")") return end
-    local visible, ranked, spent = 0, 0, 0
+    local visible, ranked, spent, purchasable, open = 0, 0, 0, 0, nil
     for _, nodeID in ipairs(nodes) do
         local okInfo, info = pcall(C_Traits.GetNodeInfo, configID, nodeID)
         if okInfo and info then
             if info.isVisible then visible = visible + 1 end
+            if info.canPurchaseRank then purchasable = purchasable + 1 end
+            -- a node the stance rules would allow now: edges met, not maxed (the first one, for /stance tree <class> buy)
+            if not open and info.meetsEdgeRequirements and (info.currentRank or 0) < (info.maxRanks or 0) and info.isAvailable then
+                open = nodeID
+            end
             if (info.currentRank or 0) > 0 then ranked = ranked + 1 spent = spent + info.currentRank end
         end
     end
@@ -439,6 +444,21 @@ local function Diagnose(configID, treeID)
     local points = okCur and currencies and currencies[1]
     ns.Print(string.format("tree %d: %d nodes, %d visible, %d with ranks (%d spent); points %s/%s", treeID, #nodes, visible, ranked, spent,
         points and tostring(points.quantity) or "?", points and tostring(points.maxQuantity) or "?"))
+    local okEdit, canChange, _, why = pcall(C_ClassTalents.CanChangeTalents)
+    ns.Print(string.format("%d nodes purchasable; first open node %s; active config %s; can change talents: %s %s", purchasable,
+        tostring(open), tostring(C_ClassTalents.GetActiveConfigID and C_ClassTalents.GetActiveConfigID()), tostring(canChange), tostring(why or "")))
+    return open
+end
+
+-- /stance tree <class> buy [node]: one rank bought and committed through C_Traits, without the window's buttons
+function ns.BuyTraitNode(classId, nodeID)
+    local configID = TRAIT_CONFIG_BASE + classId
+    nodeID = nodeID or Diagnose(configID, CLASS_TREES[classId])
+    if not nodeID then ns.Print("no open node.") return end
+    local okBuy, bought = pcall(C_Traits.PurchaseRank, configID, nodeID)
+    ns.Print(string.format("PurchaseRank(%d, %d): %s %s", configID, nodeID, tostring(okBuy), tostring(bought)))
+    local okCommit, committed = pcall(C_Traits.CommitConfig, configID)
+    ns.Print(string.format("CommitConfig(%d): %s %s", configID, tostring(okCommit), tostring(committed)))
 end
 
 function ns.ShowTraitTree(classId, generic)
@@ -472,3 +492,13 @@ function ns.ShowTraitTree(classId, generic)
     end
     if not shown then ns.Print("could not open it: " .. tostring(err)) end
 end
+
+ns.On("LOADED", function()
+    local events = CreateFrame("Frame")
+    for _, event in ipairs({ "TRAIT_CONFIG_UPDATED", "CONFIG_COMMIT_FAILED", "TRAIT_TREE_CHANGED" }) do pcall(events.RegisterEvent, events, event) end
+    events:SetScript("OnEvent", function(_, event, configID, ...)
+        if type(configID) == "number" and configID > TRAIT_CONFIG_BASE then
+            ns.Print(string.format("%s %d %s", event, configID, table.concat({ tostringall(...) }, " ")))
+        end
+    end)
+end)

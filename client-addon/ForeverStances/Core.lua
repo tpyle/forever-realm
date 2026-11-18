@@ -125,8 +125,14 @@ SlashCmdList.FOREVERSTANCES = function(msg)
         local classId = active ~= 0 and active or ns.state.learned[1]
         if classId then ns.ShowSpellbook(classId) else ns.Print("no class stance learned yet.") end
     elseif msg:match("^tree") then
-        local classId, generic = msg:match("^tree%s+(%d+)%s*(%a*)")
-        if classId then ns.ShowTraitTree(tonumber(classId), generic == "generic") else ns.Print("/stance tree <class id> [generic]") end
+        local classId, option, node = msg:match("^tree%s+(%d+)%s*(%a*)%s*(%d*)")
+        if not classId then
+            ns.Print("/stance tree <class id> [generic | buy [node]]")
+        elseif option == "buy" then
+            ns.BuyTraitNode(tonumber(classId), tonumber(node))
+        else
+            ns.ShowTraitTree(tonumber(classId), option == "generic")
+        end
     elseif msg == "bars reset" then
         if InCombatLockdown() then ns.Print("not in combat.") else ns.ResetBars() end
     elseif msg:match("^scale") then
