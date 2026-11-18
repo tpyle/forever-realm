@@ -416,3 +416,37 @@ ns.On("STANCE_CHANGED", function(active)
         frame:Hide()
     end
 end)
+
+-- Prototype: a stance class's talents in the client's own talent window. The server gives every learned stance class a trait
+-- config of its spec (id 2130000000 + class, ClassStance::SyncTraitConfigs) and learns a commit of one by the stance rules.
+-- /stance tree <class id> opens it in the talent window, /stance tree <class id> generic in the generic trait frame.
+local TRAIT_CONFIG_BASE = 2130000000
+
+function ns.ShowTraitTree(classId, generic)
+    local configID = TRAIT_CONFIG_BASE + classId
+    local ok, info = pcall(C_Traits.GetConfigInfo, configID)
+    if not ok or not info then
+        ns.Print(string.format("no trait config %d for %s (%s).", configID, ns.ClassName(classId), tostring(info)))
+        return
+    end
+    ns.Print(string.format("config %d \"%s\": type %s, trees %s", configID, tostring(info.name), tostring(info.type),
+        table.concat(info.treeIDs or {}, ",")))
+    if InCombatLockdown() then ns.Print("not in combat.") return end
+
+    local shown, err
+    if generic then
+        shown, err = pcall(function()
+            if GenericTraitUI_LoadUI then GenericTraitUI_LoadUI() else C_AddOns.LoadAddOn("Blizzard_GenericTraitUI") end
+            GenericTraitFrame:SetConfigID(configID, true)
+            ShowUIPanel(GenericTraitFrame)
+        end)
+    else
+        shown, err = pcall(function()
+            C_AddOns.LoadAddOn("Blizzard_PlayerSpells")
+            if not PlayerSpellsFrame:IsShown() then ShowUIPanel(PlayerSpellsFrame) end
+            PlayerSpellsFrame:SetTab(PlayerSpellsFrame.talentTabID)
+            PlayerSpellsFrame.TalentsFrame:SetConfigID(configID, true)
+        end)
+    end
+    if not shown then ns.Print("could not open it: " .. tostring(err)) end
+end
