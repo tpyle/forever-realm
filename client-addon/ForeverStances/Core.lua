@@ -139,3 +139,43 @@ SlashCmdList.FOREVERSTANCES = function(msg)
         ns.TogglePanel()
     end
 end
+
+-- a square icon tab (the talent window's classes, its tree headers, the spellbook's skill lines): the name in its tooltip,
+-- a gold glow when it is the one shown. tab:Set(icon, tooltip title, tooltip line or nil, selected)
+function ns.IconTab(parent, size)
+    local b = CreateFrame("Button", nil, parent)
+    b:SetSize(size, size)
+    b.icon = b:CreateTexture(nil, "ARTWORK")
+    b.icon:SetAllPoints()
+    b.icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+    b.border = b:CreateTexture(nil, "BACKGROUND")
+    b.border:SetPoint("TOPLEFT", -2, 2)
+    b.border:SetPoint("BOTTOMRIGHT", 2, -2)
+    b.border:SetColorTexture(0, 0, 0, 0.9)
+    b.glow = b:CreateTexture(nil, "OVERLAY")
+    b.glow:SetTexture("Interface\\Buttons\\CheckButtonHilight")
+    b.glow:SetBlendMode("ADD")
+    b.glow:SetAllPoints()
+    b:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square", "ADD")
+    function b:Set(icon, title, line, selected)
+        self.icon:SetTexture(icon or 134400)
+        self.tipTitle, self.tipLine = title, line
+        self.glow:SetShown(selected and true or false)
+        if GameTooltip:GetOwner() == self then self:GetScript("OnEnter")(self) end
+    end
+    b:SetScript("OnEnter", function(self)
+        if not self.tipTitle then return end
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        GameTooltip:SetText(self.tipTitle, 1, 0.82, 0)
+        if self.tipLine then GameTooltip:AddLine(self.tipLine, 1, 1, 1, true) end
+        GameTooltip:Show()
+    end)
+    b:SetScript("OnLeave", GameTooltip_Hide)
+    return b
+end
+
+-- a class's icon (the client's ClassIcon_<Class> files)
+function ns.ClassIcon(classId)
+    local name = ns.CLASS_NAMES[classId]
+    return name and ("Interface\\Icons\\ClassIcon_" .. name) or 134400
+end

@@ -5,6 +5,8 @@ local _, ns = ...
 
 local PER_PAGE, COLUMNS = 14, 2
 local ENTRY_W, ENTRY_H = 200, 44
+local TAB_SIZE = 28
+local GENERAL_ICON, OTHER_ICON = "Interface\\Icons\\INV_Misc_Book_09", "Interface\\Icons\\INV_Misc_QuestionMark"
 local CLIENT_FRAMES = { "SpellBookFrame", "PlayerSpellsFrame" }
 
 local frame = CreateFrame("Frame", "ForeverStancesSpellbook", UIParent, "BasicFrameTemplateWithInset")
@@ -170,6 +172,7 @@ for i = 1, PER_PAGE do
     b.name:SetPoint("TOPLEFT", b, "TOPRIGHT", 6, -2)
     b.name:SetWidth(ENTRY_W - 50)
     b.name:SetJustifyH("LEFT")
+    b.name:SetWordWrap(false)      -- a long name is cut short (the tooltip has it whole), not run over the rank below
     b.sub = b:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     b.sub:SetPoint("TOPLEFT", b.name, "BOTTOMLEFT", 0, -2)
     b:SetScript("OnEnter", function(self)
@@ -206,12 +209,12 @@ local function Draw()
     emptyText:Hide()
     tab = math.min(tab, #tabs)
 
+    -- a tab per skill line: its icon, the name in the tooltip and in the window's title
     for i, t in ipairs(tabs) do
         local b = tabButtons[i]
         if not b then
-            b = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
-            b:SetSize(96, 22)
-            b:SetPoint("TOPLEFT", 14 + (i - 1) * 100, -30)
+            b = ns.IconTab(frame, TAB_SIZE)
+            b:SetPoint("TOPLEFT", 16 + (i - 1) * (TAB_SIZE + 6), -30)
             b:SetScript("OnClick", function(self)
                 if InCombatLockdown() then return end
                 tab, page = self.index, 1
@@ -220,10 +223,11 @@ local function Draw()
             tabButtons[i] = b
         end
         b.index = i
-        b:SetText(t.name)
+        local icon = t.skill == GENERAL and GENERAL_ICON or ns.SkillIcons and ns.SkillIcons[t.skill] or OTHER_ICON
+        b:Set(icon, t.name, string.format("%d spell%s", #t.spells, #t.spells == 1 and "" or "s"), i == tab)
         b:Show()
-        if i == tab then b:LockHighlight() else b:UnlockHighlight() end
     end
+    frame.TitleText:SetText(ns.ClassName(shown) .. " Spells: " .. tabs[tab].name)
 
     local spells = tabs[tab].spells
     local pages = math.max(1, math.ceil(#spells / PER_PAGE))

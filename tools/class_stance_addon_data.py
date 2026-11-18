@@ -322,6 +322,13 @@ def main():
     for i in range(0, len(items), 12):
         out.append("  " + " ".join(f"[{s}]={c}," for s, c in items[i:i + 12]))
     out.append("}")
+    # the spellbook's tab icons: [class skill line] = icon file
+    out.append("-- [class skill line] = its icon (the stance spellbook's tabs)")
+    out.append("ns.SkillIcons = {")
+    icons = sorted((skill, skill_lines[skill]["SpellIconFileID"]) for skill in line_class if skill_lines[skill]["SpellIconFileID"])
+    for i in range(0, len(icons), 8):
+        out.append("  " + " ".join(f"[{k}]={v}," for k, v in icons[i:i + 8]))
+    out.append("}")
     (DATA / "SpellClasses.lua").write_text("\n".join(out) + "\n")
 
     for class_id, tabs in classes.items():

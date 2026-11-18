@@ -9,7 +9,8 @@ local TREE_WIDTH = COLUMNS * (BUTTON + GAP) + GAP
 local TREE_HEIGHT = TIERS * (BUTTON + GAP) + GAP
 
 local frame = CreateFrame("Frame", "ForeverStancesTalentFrame", UIParent, "BasicFrameTemplateWithInset")
-frame:SetSize(3 * TREE_WIDTH + 40, TREE_HEIGHT + 110)
+local TAB_SIZE, TREE_TOP = 28, -96
+frame:SetSize(3 * TREE_WIDTH + 40, TREE_HEIGHT - TREE_TOP + 38)
 frame:SetPoint("CENTER")
 frame:SetMovable(true)
 frame:EnableMouse(true)
@@ -197,10 +198,16 @@ end
 local function MakeTree(index)
     local tree = CreateFrame("Frame", nil, frame, "InsetFrameTemplate")
     tree:SetSize(TREE_WIDTH, TREE_HEIGHT)
-    tree:SetPoint("TOPLEFT", 14 + (index - 1) * (TREE_WIDTH + 6), -72)
+    tree:SetPoint("TOPLEFT", 14 + (index - 1) * (TREE_WIDTH + 6), TREE_TOP)
+    -- the header: the spec's icon (its name and points in the tooltip) and its name, cut short to the tree's width
+    local icon = ns.IconTab(tree, 20)
+    icon:SetPoint("BOTTOMLEFT", tree, "TOPLEFT", 4, 4)
     local title = tree:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    title:SetPoint("BOTTOM", tree, "TOP", 0, 4)
-    trees[index] = { frame = tree, title = title, buttons = {}, lines = {}, pool = {} }
+    title:SetPoint("LEFT", icon, "RIGHT", 6, 0)
+    title:SetPoint("RIGHT", tree, "RIGHT", -4, 0)
+    title:SetJustifyH("LEFT")
+    title:SetWordWrap(false)
+    trees[index] = { frame = tree, icon = icon, title = title, buttons = {}, lines = {}, pool = {} }
     return trees[index]
 end
 
@@ -262,9 +269,8 @@ local function Draw()
     for i, classId in ipairs(learned) do
         local b = classButtons[i]
         if not b then
-            b = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
-            b:SetSize(90, 22)
-            b:SetPoint("TOPLEFT", 14 + (i - 1) * 94, -30)
+            b = ns.IconTab(frame, TAB_SIZE)
+            b:SetPoint("TOPLEFT", 16 + (i - 1) * (TAB_SIZE + 6), -32)
             b:SetScript("OnClick", function(self)
                 selected = self.classId
                 if not (ns.talents and ns.talents[selected]) then ns.Send("TALENTS " .. selected) end
@@ -273,11 +279,11 @@ local function Draw()
             classButtons[i] = b
         end
         b.classId = classId
-        b:SetText(ns.ClassName(classId))
+        b:Set(ns.ClassIcon(classId), ns.ClassName(classId), "Talents", classId == selected)
         b:Show()
-        if classId == selected then b:LockHighlight() else b:UnlockHighlight() end
     end
 
+    frame.TitleText:SetText(selected and ("Stance Talents: " .. ns.ClassName(selected)) or "Stance Talents")
     local data = selected and ns.Talents[selected]
     emptyText:SetShown(not data)
     resetButton:SetShown(data ~= nil)
@@ -291,7 +297,9 @@ local function Draw()
     local ranks = Ranks(selected)
     for index, tab in ipairs(data) do
         local tree = trees[index]
-        tree.title:SetText(string.format("%s (%d)", tab.name, SpentInTab(selected, tab)))
+        local spent = SpentInTab(selected, tab)
+        tree.title:SetText(string.format("%s (%d)", tab.name, spent))
+        tree.icon:Set(tab.icon, tab.name, string.format("%d point%s spent", spent, spent == 1 and "" or "s"))
         wipe(tree.buttons)
         for _, b in ipairs(tree.pool) do b:Hide() end
         for _, line in ipairs(tree.lines) do line:Hide() end

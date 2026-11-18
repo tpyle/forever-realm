@@ -414,7 +414,13 @@ never passes on. `/stance ping` tests the link.
   button (intercepted as the talent ones are) open that class's spells,
   sent by the server (`SPELLS`), a tab per class skill line after the
   client spellbook's General tab, the highest rank of each unless "All
-  ranks" is ticked. Clicking casts (on release, so a drag does not),
+  ranks" is ticked. The tabs are the skill lines' icons
+  (`ns.SkillIcons`, generated with SpellClasses.lua from
+  SkillLine.SpellIconFileID), named in their tooltips and the window's
+  title; the talent window picks its class by class icon and heads each
+  tree with the spec's icon, so neither runs out of the window. A spell
+  of no spell family (Rockbiter Weapon) belongs to the class of its class
+  skill line when that line is one class's only. Clicking casts (on release, so a drag does not),
   dragging puts the spell on a bar. `/stance spells` opens it too. Out of
   combat only, as its buttons are secure.
 - **Greyed spells.** Abilities of a learned class other than the one the

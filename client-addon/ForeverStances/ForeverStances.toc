@@ -1,7 +1,7 @@
 ## Interface: 16001
 ## Title: Forever Stances
 ## Notes: Class stances: talents for your stance classes, an action bar per stance, other classes' spells greyed out, and a stance panel. /stance
-## Version: 1.1
+## Version: 1.2
 ## SavedVariables: ForeverStancesAccountDB
 ## SavedVariablesPerCharacter: ForeverStancesDB
 
