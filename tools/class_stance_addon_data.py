@@ -297,12 +297,27 @@ def main():
     any_stance = {int(x) for x in SETTINGS["worldserver.conf"]["ClassStance.AnyStanceSpells"].split()}
     options, _ = db2read.read(DBC / "SpellClassOptions.db2", meta("SpellClassOptions"))
     spells = {}
+    family = {}
     for row in options.values():
         values = flat(row)
+        family[values[0]] = values[2]
         class_id = FAMILY_CLASS.get(values[2])
         if class_id and values[0] and values[0] not in any_stance:
             spells[values[0]] = class_id
-    out = [HEADER, "local _, ns = ...", "-- [spell] = class of its spell family", "ns.SpellClasses = {"]
+    # a spell of no family (Rockbiter Weapon): the class of its class skill line, when that line belongs to one class
+    # (ClassStance's GetClassOfSpell)
+    skill_lines = load("SkillLine", "HOTFIX_SEL_SKILL_LINE", "skill_line")
+    masks = defaultdict(int)
+    for row in load("SkillRaceClassInfo", "HOTFIX_SEL_SKILL_RACE_CLASS_INFO", "skill_race_class_info").values():
+        line = skill_lines.get(row["SkillID"])
+        if line and line["CategoryID"] == 7:
+            masks[row["SkillID"]] |= row["ClassMask"] & 0xFFFFFFFF
+    line_class = {skill: CLASS_BITS[mask] for skill, mask in masks.items() if mask in CLASS_BITS}
+    for row in sorted(load("SkillLineAbility", "HOTFIX_SEL_SKILL_LINE_ABILITY", "skill_line_ability").values(), key=lambda r: r["ID"]):
+        spell = row["Spell"]
+        if spell and not family.get(spell) and spell not in spells and spell not in any_stance and row["SkillLine"] in line_class:
+            spells[spell] = line_class[row["SkillLine"]]
+    out = [HEADER, "local _, ns = ...", "-- [spell] = class of its spell family (or of its class skill line)", "ns.SpellClasses = {"]
     items = sorted(spells.items())
     for i in range(0, len(items), 12):
         out.append("  " + " ".join(f"[{s}]={c}," for s, c in items[i:i + 12]))
