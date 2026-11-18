@@ -421,6 +421,25 @@ end)
 -- config of its spec (id 2130000000 + class, ClassStance::SyncTraitConfigs) and learns a commit of one by the stance rules.
 -- /stance tree <class id> opens it in the talent window, /stance tree <class id> generic in the generic trait frame.
 local TRAIT_CONFIG_BASE = 2130000000
+-- each class's trait tree (SkillLineXTraitTree): the client fills a config's treeIDs from the player's own class
+local CLASS_TREES = { [1] = 1117, [2] = 1100, [3] = 1091, [4] = 1111, [5] = 1114, [7] = 1082, [8] = 1112, [9] = 1116, [11] = 1089 }
+
+local function Diagnose(configID, treeID)
+    local ok, nodes = pcall(C_Traits.GetTreeNodes, treeID)
+    if not ok or not nodes then ns.Print("tree " .. treeID .. ": no nodes (" .. tostring(nodes) .. ")") return end
+    local visible, ranked, spent = 0, 0, 0
+    for _, nodeID in ipairs(nodes) do
+        local okInfo, info = pcall(C_Traits.GetNodeInfo, configID, nodeID)
+        if okInfo and info then
+            if info.isVisible then visible = visible + 1 end
+            if (info.currentRank or 0) > 0 then ranked = ranked + 1 spent = spent + info.currentRank end
+        end
+    end
+    local okCur, currencies = pcall(C_Traits.GetTreeCurrencyInfo, configID, treeID, false)
+    local points = okCur and currencies and currencies[1]
+    ns.Print(string.format("tree %d: %d nodes, %d visible, %d with ranks (%d spent); points %s/%s", treeID, #nodes, visible, ranked, spent,
+        points and tostring(points.quantity) or "?", points and tostring(points.maxQuantity) or "?"))
+end
 
 function ns.ShowTraitTree(classId, generic)
     local configID = TRAIT_CONFIG_BASE + classId
@@ -431,6 +450,7 @@ function ns.ShowTraitTree(classId, generic)
     end
     ns.Print(string.format("config %d \"%s\": type %s, trees %s", configID, tostring(info.name), tostring(info.type),
         table.concat(info.treeIDs or {}, ",")))
+    if CLASS_TREES[classId] then Diagnose(configID, CLASS_TREES[classId]) end
     if InCombatLockdown() then ns.Print("not in combat.") return end
 
     local shown, err
@@ -438,6 +458,7 @@ function ns.ShowTraitTree(classId, generic)
         shown, err = pcall(function()
             if GenericTraitUI_LoadUI then GenericTraitUI_LoadUI() else C_AddOns.LoadAddOn("Blizzard_GenericTraitUI") end
             GenericTraitFrame:SetConfigID(configID, true)
+            GenericTraitFrame:SetTalentTreeID(CLASS_TREES[classId], true)
             ShowUIPanel(GenericTraitFrame)
         end)
     else
@@ -446,6 +467,7 @@ function ns.ShowTraitTree(classId, generic)
             if not PlayerSpellsFrame:IsShown() then ShowUIPanel(PlayerSpellsFrame) end
             PlayerSpellsFrame:SetTab(PlayerSpellsFrame.talentTabID)
             PlayerSpellsFrame.TalentsFrame:SetConfigID(configID, true)
+            PlayerSpellsFrame.TalentsFrame:SetTalentTreeID(CLASS_TREES[classId], true)
         end)
     end
     if not shown then ns.Print("could not open it: " .. tostring(err)) end
