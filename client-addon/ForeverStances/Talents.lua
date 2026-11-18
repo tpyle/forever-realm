@@ -479,6 +479,7 @@ function ns.ShowTraitTree(classId, generic)
             if GenericTraitUI_LoadUI then GenericTraitUI_LoadUI() else C_AddOns.LoadAddOn("Blizzard_GenericTraitUI") end
             GenericTraitFrame:SetConfigID(configID, true)
             GenericTraitFrame:SetTalentTreeID(CLASS_TREES[classId], true)
+            shownStance = { frame = GenericTraitFrame, class = classId }
             ShowUIPanel(GenericTraitFrame)
         end)
     else
@@ -488,10 +489,52 @@ function ns.ShowTraitTree(classId, generic)
             PlayerSpellsFrame:SetTab(PlayerSpellsFrame.talentTabID)
             PlayerSpellsFrame.TalentsFrame:SetConfigID(configID, true)
             PlayerSpellsFrame.TalentsFrame:SetTalentTreeID(CLASS_TREES[classId], true)
+            shownStance = { frame = PlayerSpellsFrame.TalentsFrame, class = classId }
         end)
     end
     if not shown then ns.Print("could not open it: " .. tostring(err)) end
 end
+
+-- the client's window cannot buy ranks in a config that is not the active one (canPurchaseRank is false for every node), so a
+-- click on a stance tree's talent is sent to the server as the stance window's are (LEARN); the server's reply rewrites the
+-- config's entries and the window is drawn again
+local shownStance          -- { frame, class } of the client window showing a stance config
+
+local function StanceOfFrame(talentFrame)
+    local configID = talentFrame and talentFrame.GetConfigID and talentFrame:GetConfigID()
+    local classId = configID and configID - TRAIT_CONFIG_BASE
+    return (classId and CLASS_TREES[classId]) and classId or nil
+end
+
+local function Redraw()
+    if not shownStance or not shownStance.frame:IsVisible() then return end
+    local configID = TRAIT_CONFIG_BASE + shownStance.class
+    pcall(function()
+        shownStance.frame:SetConfigID(configID, true)
+        shownStance.frame:SetTalentTreeID(CLASS_TREES[shownStance.class], true)
+    end)
+end
+
+if EventRegistry then
+    EventRegistry:RegisterCallback("TalentButton.OnClick", function(_, talentButton, mouseButton)
+        local talentFrame = talentButton.GetTalentFrame and talentButton:GetTalentFrame()
+        local classId = StanceOfFrame(talentFrame)
+        if not classId then return end
+        shownStance = { frame = talentFrame, class = classId }
+        local entryID = talentButton.GetEntryID and talentButton:GetEntryID()
+        if mouseButton == "LeftButton" and entryID and not IsModifiedClick("CHATLINK") then
+            if InCombatLockdown() then ns.Print("not in combat.") return end
+            ns.Send(string.format("LEARN %d %d", classId, entryID))
+        elseif mouseButton == "RightButton" then
+            ns.Print("stance talents are given back all at once: Reset talents in /stance talents.")
+        end
+    end, ns)
+end
+
+ns.On("TALENTS", function()
+    -- the update of the config's entries comes with the server's reply; draw once it is in
+    C_Timer.After(0.3, Redraw)
+end)
 
 ns.On("LOADED", function()
     local events = CreateFrame("Frame")
