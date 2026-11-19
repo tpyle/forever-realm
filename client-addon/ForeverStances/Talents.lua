@@ -388,23 +388,34 @@ ns.On("STATE", function()
     Draw()
 end)
 
--- The talent key (N) and the talent micro button: in a class stance they toggle that class's trees (Intercept.lua)
+-- The talent key (N) and the talent micro button: in a class stance they toggle the client's talent window on that class's
+-- trees (ns.ShowTraitTree, below); in combat, when the client's window may not be opened from here, this addon's window.
 local CLIENT_FRAMES = { "PlayerTalentFrame", "TalentFrame", "ClassTalentFrame", "PlayerSpellsFrame" }
+
+local function ToggleOwnWindow(active)
+    if frame:IsShown() and selected == active then
+        frame:Hide()
+    else
+        for _, name in ipairs(CLIENT_FRAMES) do
+            local f = _G[name]
+            if f and f:IsShown() then HideUIPanel(f) end
+        end
+        ns.ShowTalents(active)
+    end
+end
 
 ns.Intercept{
     name = "Talent", binding = "TOGGLETALENTS", microButtons = { "TalentMicroButton", "PlayerSpellsMicroButton" },
-    title = "Stance Talents", what = "talents",
+    title = "Talents", what = "talents",
     enabled = function(active) return ns.Talents[active] ~= nil end,
     toggle = function(active)
-        if frame:IsShown() and selected == active then
-            frame:Hide()
-        else
-            for _, name in ipairs(CLIENT_FRAMES) do
-                local f = _G[name]
-                if f and f:IsShown() then HideUIPanel(f) end
-            end
-            ns.ShowTalents(active)
+        if InCombatLockdown() then return ToggleOwnWindow(active) end
+        if ns.IsShowingStanceTree(active) then
+            HideUIPanel(PlayerSpellsFrame)
+            return
         end
+        if frame:IsShown() then frame:Hide() end
+        if not ns.ShowTraitTree(active, true) then ToggleOwnWindow(active) end
     end,
 }
 
@@ -417,93 +428,64 @@ ns.On("STANCE_CHANGED", function(active)
     end
 end)
 
--- Prototype: a stance class's talents in the client's own talent window. The server gives every learned stance class a trait
--- config of its spec (id 2130000000 + class, ClassStance::SyncTraitConfigs) and learns a commit of one by the stance rules.
--- /stance tree <class id> opens it in the talent window, /stance tree <class id> generic in the generic trait frame.
+-- A stance class's talents in the client's own talent window. The server gives every learned stance class a trait config of
+-- its spec (id 2130000000 + class, ClassStance::SyncTraitConfigs); the window shows it on that class's tree, and a click on a
+-- talent is learned by the server by the stance rules. N in a stance opens it (above); /stance tree <class id> opens any
+-- learned stance class's.
 local TRAIT_CONFIG_BASE = 2130000000
 -- each class's trait tree (SkillLineXTraitTree): the client fills a config's treeIDs from the player's own class
 local CLASS_TREES = { [1] = 1117, [2] = 1100, [3] = 1091, [4] = 1111, [5] = 1114, [7] = 1082, [8] = 1112, [9] = 1116, [11] = 1089 }
 local shownStance          -- { frame, class } of the client window showing a stance config
 local WatchFrame           -- set below: draws that window's buttons by the stance rules
+local StanceOfFrame        -- set below: the stance class whose config a talent frame shows, or nil
 
-local function Diagnose(configID, treeID)
-    local ok, nodes = pcall(C_Traits.GetTreeNodes, treeID)
-    if not ok or not nodes then ns.Print("tree " .. treeID .. ": no nodes (" .. tostring(nodes) .. ")") return end
-    local visible, ranked, spent, purchasable, open = 0, 0, 0, 0, nil
-    for _, nodeID in ipairs(nodes) do
-        local okInfo, info = pcall(C_Traits.GetNodeInfo, configID, nodeID)
-        if okInfo and info then
-            if info.isVisible then visible = visible + 1 end
-            if info.canPurchaseRank then purchasable = purchasable + 1 end
-            -- a node the stance rules would allow now: edges met, not maxed (the first one, for /stance tree <class> buy)
-            if not open and info.meetsEdgeRequirements and (info.currentRank or 0) < (info.maxRanks or 0) and info.isAvailable then
-                open = nodeID
-            end
-            if (info.currentRank or 0) > 0 then ranked = ranked + 1 spent = spent + info.currentRank end
-        end
-    end
-    local okCur, currencies = pcall(C_Traits.GetTreeCurrencyInfo, configID, treeID, false)
-    local points = okCur and currencies and currencies[1]
-    ns.Print(string.format("tree %d: %d nodes, %d visible, %d with ranks (%d spent); points %s/%s", treeID, #nodes, visible, ranked, spent,
-        points and tostring(points.quantity) or "?", points and tostring(points.maxQuantity) or "?"))
-    local okEdit, canChange, _, why = pcall(C_ClassTalents.CanChangeTalents)
-    ns.Print(string.format("%d nodes purchasable; first open node %s; active config %s; can change talents: %s %s", purchasable,
-        tostring(open), tostring(C_ClassTalents.GetActiveConfigID and C_ClassTalents.GetActiveConfigID()), tostring(canChange), tostring(why or "")))
-    return open
+-- true when the client's talent window is open on this stance class's tree
+function ns.IsShowingStanceTree(classId)
+    local talents = PlayerSpellsFrame and PlayerSpellsFrame:IsShown() and PlayerSpellsFrame.TalentsFrame
+    return talents and talents:IsVisible() and StanceOfFrame(talents) == classId or false
 end
 
--- /stance tree <class> buy [node]: one rank bought and committed through C_Traits, without the window's buttons
-function ns.BuyTraitNode(classId, nodeID)
+-- opens the client's talent window on a stance class's config; false when it cannot (no config, in combat); quiet: no
+-- message when there is no config (N falls back to this addon's window)
+function ns.ShowTraitTree(classId, quiet)
     local configID = TRAIT_CONFIG_BASE + classId
-    nodeID = nodeID or Diagnose(configID, CLASS_TREES[classId])
-    if not nodeID then ns.Print("no open node.") return end
-    local okBuy, bought = pcall(C_Traits.PurchaseRank, configID, nodeID)
-    ns.Print(string.format("PurchaseRank(%d, %d): %s %s", configID, nodeID, tostring(okBuy), tostring(bought)))
-    local okCommit, committed = pcall(C_Traits.CommitConfig, configID)
-    ns.Print(string.format("CommitConfig(%d): %s %s", configID, tostring(okCommit), tostring(committed)))
-end
-
-function ns.ShowTraitTree(classId, generic)
-    local configID = TRAIT_CONFIG_BASE + classId
+    if not CLASS_TREES[classId] then return false end
     local ok, info = pcall(C_Traits.GetConfigInfo, configID)
     if not ok or not info then
-        ns.Print(string.format("no trait config %d for %s (%s).", configID, ns.ClassName(classId), tostring(info)))
-        return
+        if not quiet then ns.Print(string.format("no %s talents to show yet.", ns.ClassName(classId))) end
+        return false
     end
-    ns.Print(string.format("config %d \"%s\": type %s, trees %s", configID, tostring(info.name), tostring(info.type),
-        table.concat(info.treeIDs or {}, ",")))
-    if CLASS_TREES[classId] then Diagnose(configID, CLASS_TREES[classId]) end
-    if InCombatLockdown() then ns.Print("not in combat.") return end
-
-    local shown, err
-    if generic then
-        shown, err = pcall(function()
-            if GenericTraitUI_LoadUI then GenericTraitUI_LoadUI() else C_AddOns.LoadAddOn("Blizzard_GenericTraitUI") end
-            GenericTraitFrame:SetConfigID(configID, true)
-            GenericTraitFrame:SetTalentTreeID(CLASS_TREES[classId], true)
-            shownStance = { frame = GenericTraitFrame, class = classId }
-            WatchFrame(GenericTraitFrame)
-            ShowUIPanel(GenericTraitFrame)
-        end)
-    else
-        shown, err = pcall(function()
-            C_AddOns.LoadAddOn("Blizzard_PlayerSpells")
-            if not PlayerSpellsFrame:IsShown() then ShowUIPanel(PlayerSpellsFrame) end
-            PlayerSpellsFrame:SetTab(PlayerSpellsFrame.talentTabID)
-            PlayerSpellsFrame.TalentsFrame:SetConfigID(configID, true)
-            PlayerSpellsFrame.TalentsFrame:SetTalentTreeID(CLASS_TREES[classId], true)
-            shownStance = { frame = PlayerSpellsFrame.TalentsFrame, class = classId }
-            WatchFrame(PlayerSpellsFrame.TalentsFrame)
-        end)
-    end
-    if not shown then ns.Print("could not open it: " .. tostring(err)) end
+    if InCombatLockdown() then ns.Print("not in combat.") return false end
+    local shown, err = pcall(function()
+        C_AddOns.LoadAddOn("Blizzard_PlayerSpells")
+        if not PlayerSpellsFrame:IsShown() then ShowUIPanel(PlayerSpellsFrame) end
+        PlayerSpellsFrame:SetTab(PlayerSpellsFrame.talentTabID)
+        local talents = PlayerSpellsFrame.TalentsFrame
+        shownStance = { frame = talents, class = classId }
+        WatchFrame(talents)
+        talents:SetConfigID(configID, true)
+    end)
+    if not shown then ns.Print("could not open the talent window: " .. tostring(err)) end
+    return shown
 end
+
+-- a stance change with the client's window open on a stance tree: the new stance's tree, or the player's own talents
+ns.On("STANCE_CHANGED", function(active)
+    local talents = PlayerSpellsFrame and PlayerSpellsFrame.TalentsFrame
+    if InCombatLockdown() or not (talents and talents:IsVisible() and StanceOfFrame(talents)) then return end
+    if active ~= 0 and CLASS_TREES[active] and ns.Talents[active] then
+        ns.ShowTraitTree(active)
+    else
+        local configID = C_ClassTalents.GetActiveConfigID and C_ClassTalents.GetActiveConfigID()
+        if configID then pcall(talents.SetConfigID, talents, configID, true) end
+    end
+end)
 
 -- the client's window cannot buy ranks in a config that is not the active one (canPurchaseRank is false for every node), so a
 -- click on a stance tree's talent is sent to the server as the stance window's are (LEARN); the server's reply rewrites the
 -- config's entries and the window is drawn again
 
-local function StanceOfFrame(talentFrame)
+function StanceOfFrame(talentFrame)
     local configID = talentFrame and talentFrame.GetConfigID and talentFrame:GetConfigID()
     local classId = configID and configID - TRAIT_CONFIG_BASE
     return (classId and CLASS_TREES[classId]) and classId or nil
@@ -654,14 +636,4 @@ end
 ns.On("TALENTS", function()
     -- the update of the config's entries comes with the server's reply; draw once it is in
     C_Timer.After(0.3, Redraw)
-end)
-
-ns.On("LOADED", function()
-    local events = CreateFrame("Frame")
-    for _, event in ipairs({ "TRAIT_CONFIG_UPDATED", "CONFIG_COMMIT_FAILED", "TRAIT_TREE_CHANGED" }) do pcall(events.RegisterEvent, events, event) end
-    events:SetScript("OnEvent", function(_, event, configID, ...)
-        if type(configID) == "number" and configID > TRAIT_CONFIG_BASE then
-            ns.Print(string.format("%s %d %s", event, configID, table.concat({ tostringall(...) }, " ")))
-        end
-    end)
 end)

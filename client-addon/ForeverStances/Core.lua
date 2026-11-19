@@ -125,14 +125,12 @@ SlashCmdList.FOREVERSTANCES = function(msg)
         local classId = active ~= 0 and active or ns.state.learned[1]
         if classId then ns.ShowSpellbook(classId) else ns.Print("no class stance learned yet.") end
     elseif msg:match("^tree") then
-        local classId, option, node = msg:match("^tree%s+(%d+)%s*(%a*)%s*(%d*)")
+        local classId = tonumber(msg:match("^tree%s+(%d+)"))
         if not classId then
-            ns.Print("/stance tree <class id> [generic | buy [node]]")
-        elseif option == "buy" then
-            ns.BuyTraitNode(tonumber(classId), tonumber(node))
-        else
-            ns.ShowTraitTree(tonumber(classId), option == "generic")
+            local active = ns.auraStance or ns.ActiveStanceFromAuras()
+            classId = active ~= 0 and active or ns.state.learned[1]
         end
+        if classId then ns.ShowTraitTree(classId) else ns.Print("no class stance learned yet.") end
     elseif msg == "bars reset" then
         if InCombatLockdown() then ns.Print("not in combat.") else ns.ResetBars() end
     elseif msg:match("^scale") then
@@ -143,7 +141,7 @@ SlashCmdList.FOREVERSTANCES = function(msg)
             ns.Print("/stance scale <0.6-2>: the size of the talent window (or drag its bottom right corner). Default 1.25.")
         end
     elseif msg == "help" then
-        ns.Print("/stance: the stance panel. /stance talents: the talent window. /stance spells: the stance spellbook. /stance scale <0.6-2>: its size. /stance bars reset: forget the stance bar layouts. /stance ping: test the link to the server.")
+        ns.Print("/stance: the stance panel. /stance tree [class id]: a stance class's talents in the client's talent window (N in a stance). /stance talents: this addon's talent window. /stance spells: the stance spellbook. /stance scale <0.6-2>: its size. /stance bars reset: forget the stance bar layouts. /stance ping: test the link to the server.")
     else
         ns.TogglePanel()
     end

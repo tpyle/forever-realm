@@ -398,10 +398,22 @@ never passes on. `/stance ping` tests the link.
   (Divine Intellect) kept its first rank's amount. `ClassStance.TalentsAlwaysActive = 1`
   keeps them on at all times; 0 applies a class's talents only in its
   stance. In a class stance the talent key and the talent micro button
-  open that class's trees (an override binding and a button over the
-  micro button, only while a stance is active); out of one, the client's
-  own window. `/stance talents` opens them too, `/stance scale` or the
-  corner grip sizes the window (for the whole account).
+  open the client's own talent window on that class's tree (an override
+  binding and a button over the micro button, only while a stance is
+  active; in combat, the addon's window); out of one, the client's own
+  talents. The server keeps a trait config per learned stance class (id
+  2130000000 + class, `ClassStance::SyncTraitConfigs`, never saved: it is
+  built from the stance picks at login and after each change). The client
+  fills a config's tree from the player's own class and lets only the
+  active config buy ranks, so the addon gives the window that class's tree
+  (`SetTalentTreeID` on the frame), draws each button by the stance rules
+  (its `IsSelectable`, `IsGated`, `IsLocked` and tooltip lines, falling
+  back to Blizzard's on other configs) and sends a click as `LEARN`; the
+  server's reply rewrites the config, and the window's node cache is
+  marked stale rather than the tree loaded again (which emptied it for a
+  frame). `/stance tree [class id]` opens any learned stance class's tree
+  there. `/stance talents` opens the addon's own window, `/stance scale`
+  or the corner grip sizes it (for the whole account).
 - **A bar per stance.** The main bar (slots 1-12) and the stance and form
   bars (73-120) have a layout per class stance and one for the real class.
   Every change to one of those slots is saved at once for the stance the
