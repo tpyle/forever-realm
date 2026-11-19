@@ -509,15 +509,23 @@ local function StanceOfFrame(talentFrame)
     return (classId and CLASS_TREES[classId]) and classId or nil
 end
 
+-- after a learn: the server has rewritten the config's entries, so the window's cached node info is marked stale and read
+-- again on its next frame, and the points with it; the buttons stay (loading the tree again would empty and redraw it)
 local function Redraw()
     if not shownStance or not shownStance.frame:IsVisible() then return end
-    local configID = TRAIT_CONFIG_BASE + shownStance.class
+    local talentFrame = shownStance.frame
+    if StanceOfFrame(talentFrame) ~= shownStance.class then return end
     pcall(function()
-        shownStance.frame:SetConfigID(configID, true)
-        shownStance.frame:SetTalentTreeID(CLASS_TREES[shownStance.class], true)
+        for button in talentFrame:EnumerateAllTalentButtons() do
+            local nodeID = button.GetNodeID and button:GetNodeID()
+            if nodeID then talentFrame:MarkNodeInfoCacheDirty(nodeID) end
+        end
     end)
-    -- the window loads the tree on its next frame; draw the stance looks after that
-    C_Timer.After(0, function() if shownStance then WatchFrame(shownStance.frame) end end)
+    C_Timer.After(0.05, function()
+        if not shownStance or StanceOfFrame(talentFrame) ~= shownStance.class then return end
+        pcall(talentFrame.UpdateTreeCurrencyInfo, talentFrame)
+        WatchFrame(talentFrame)
+    end)
 end
 
 -- The client draws a node as available only when it could buy it (canPurchaseRank, false outside the active config), so on a
@@ -622,6 +630,11 @@ if EventRegistry then
         local entryID = talentButton.GetEntryID and talentButton:GetEntryID()
         if mouseButton == "LeftButton" and entryID and not IsModifiedClick("CHATLINK") then
             if InCombatLockdown() then ns.Print("not in combat.") return end
+            -- Blizzard plays the select sound in its own purchase, which stays off here
+            local _, tab, talent = StanceTalent(talentButton)
+            if talent and CanLearn(classId, tab, talent) and talentButton.PlaySelectSound then
+                pcall(talentButton.PlaySelectSound, talentButton)
+            end
             ns.Send(string.format("LEARN %d %d", classId, entryID))
         elseif mouseButton == "RightButton" then
             ns.Print("stance talents are given back all at once: Reset talents in /stance talents.")
