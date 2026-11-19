@@ -653,6 +653,17 @@ never started a server, so steps 4 and 5 only turned up during the deploy:
 5. Stop it, run `tools/rerun_custom_sql.sh` (it lists the tables that
    changed: those upstream had overwritten), start again.
 
+The 2026-11-19 merge (WoW Forever 0.1.38, client build 70959, 209 commits,
+merge `95a696263e`) had one conflict, in `Player::_LoadSkills`: upstream's new
+profession child line check around our `ClassStance::GetSkillRaceClassInfo`
+call (both kept). `apply_upstream_sql.sh` stopped at SIN's checked Whispering
+Forest file (`2026_11_16_70_world_local_whispering_forest_longtooth_horror.sql`,
+"deleted = 18"): the mysql client sends each whole-line `--` comment as a
+statement of its own, which sets `ROW_COUNT()` to 0, so the script now drops
+those lines. The failed run had changed nothing (the file is one
+transaction). The first start re-ran no file, so step 5 was not needed.
+`apply_config.py` adds 70959 to `Realm.AlsoAcceptBuilds`.
+
 The 2026-11-13 merge (client build 70938, 73 commits, 64 SQL files, merge
 `fae33cbedb`) re-ran 8 hotfix files at the first start, and
 `rerun_custom_sql.sh` then put back 069's `quest_objectives` rows.

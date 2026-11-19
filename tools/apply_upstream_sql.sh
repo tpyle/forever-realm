@@ -19,7 +19,11 @@ export MYSQL_PWD="$(cat $ROOT/.db_pass)"
 M="mysql -h127.0.0.1 -utrinity"
 
 # file content with database-qualified names pointed at the target databases (two upstream files write world.smart_scripts)
-qualified() { sed -E "s/(^|[^a-z_])(auth|world|characters|hotfixes)\.([a-z_])/\1\2${SUFFIX}.\3/g" "$1"; }
+# whole-line "--" comments are dropped: the mysql client sends each one as a statement of its own, which sets ROW_COUNT()
+# to 0, and upstream's checked files read ROW_COUNT() after a comment (2026_11_16_70_world_local_whispering_forest_*,
+# "deleted = 18"); the worldserver's updater, which they are written for, does not do that
+qualified() { sed -E -e '/^[[:space:]]*--([[:space:]]|$)/d' \
+    -e "s/(^|[^a-z_])(auth|world|characters|hotfixes)\.([a-z_])/\1\2${SUFFIX}.\3/g" "$1"; }
 
 run_ours() { # db file
   echo "  ours: $(basename $2)"
