@@ -423,6 +423,8 @@ end)
 local TRAIT_CONFIG_BASE = 2130000000
 -- each class's trait tree (SkillLineXTraitTree): the client fills a config's treeIDs from the player's own class
 local CLASS_TREES = { [1] = 1117, [2] = 1100, [3] = 1091, [4] = 1111, [5] = 1114, [7] = 1082, [8] = 1112, [9] = 1116, [11] = 1089 }
+local shownStance          -- { frame, class } of the client window showing a stance config
+local WatchFrame           -- set below: draws that window's buttons by the stance rules
 
 local function Diagnose(configID, treeID)
     local ok, nodes = pcall(C_Traits.GetTreeNodes, treeID)
@@ -480,6 +482,7 @@ function ns.ShowTraitTree(classId, generic)
             GenericTraitFrame:SetConfigID(configID, true)
             GenericTraitFrame:SetTalentTreeID(CLASS_TREES[classId], true)
             shownStance = { frame = GenericTraitFrame, class = classId }
+            WatchFrame(GenericTraitFrame)
             ShowUIPanel(GenericTraitFrame)
         end)
     else
@@ -490,6 +493,7 @@ function ns.ShowTraitTree(classId, generic)
             PlayerSpellsFrame.TalentsFrame:SetConfigID(configID, true)
             PlayerSpellsFrame.TalentsFrame:SetTalentTreeID(CLASS_TREES[classId], true)
             shownStance = { frame = PlayerSpellsFrame.TalentsFrame, class = classId }
+            WatchFrame(PlayerSpellsFrame.TalentsFrame)
         end)
     end
     if not shown then ns.Print("could not open it: " .. tostring(err)) end
@@ -498,7 +502,6 @@ end
 -- the client's window cannot buy ranks in a config that is not the active one (canPurchaseRank is false for every node), so a
 -- click on a stance tree's talent is sent to the server as the stance window's are (LEARN); the server's reply rewrites the
 -- config's entries and the window is drawn again
-local shownStance          -- { frame, class } of the client window showing a stance config
 
 local function StanceOfFrame(talentFrame)
     local configID = talentFrame and talentFrame.GetConfigID and talentFrame:GetConfigID()
@@ -513,6 +516,100 @@ local function Redraw()
         shownStance.frame:SetConfigID(configID, true)
         shownStance.frame:SetTalentTreeID(CLASS_TREES[shownStance.class], true)
     end)
+    -- the window loads the tree on its next frame; draw the stance looks after that
+    C_Timer.After(0, function() if shownStance then WatchFrame(shownStance.frame) end end)
+end
+
+-- The client draws a node as available only when it could buy it (canPurchaseRank, false outside the active config), so on a
+-- stance tree each button's look and tooltip follow the stance rules instead (CanLearn, the same check as the stance window).
+-- The methods are replaced on the button itself and fall back to Blizzard's whenever the button shows another config, since
+-- the window reuses its buttons. CanPurchaseRank is left alone: Blizzard's own purchase stays off, the click goes to LEARN.
+local talentOfEntry = {}   -- [class][entry] = { tab, talent }
+local function StanceTalent(button)
+    local classId = StanceOfFrame(button.GetTalentFrame and button:GetTalentFrame())
+    local entryID = classId and button.GetEntryID and button:GetEntryID()
+    if not entryID then return nil end
+    if not talentOfEntry[classId] then
+        talentOfEntry[classId] = {}
+        for _, tab in ipairs(ns.Talents[classId] or {}) do
+            for _, talent in ipairs(tab.talents) do talentOfEntry[classId][talent.id] = { tab, talent } end
+        end
+    end
+    local found = talentOfEntry[classId][entryID]
+    if found then return classId, found[1], found[2] end
+end
+
+local patchedButtons = {}
+local function PatchButton(button)
+    if patchedButtons[button] then return end
+    patchedButtons[button] = true
+    local blizzard = {
+        IsSelectable = button.IsSelectable, IsGated = button.IsGated, IsLocked = button.IsLocked,
+        AddTooltipInstructions = button.AddTooltipInstructions, AddTooltipErrors = button.AddTooltipErrors,
+    }
+    function button:IsSelectable()
+        local classId, tab, talent = StanceTalent(self)
+        if not classId then return blizzard.IsSelectable(self) end
+        return CanLearn(classId, tab, talent)
+    end
+    function button:IsGated()
+        local classId, tab, talent = StanceTalent(self)
+        if not classId then return blizzard.IsGated(self) end
+        return SpentInTab(classId, tab) < talent.need
+    end
+    function button:IsLocked()
+        local classId, _, talent = StanceTalent(self)
+        if not classId then return blizzard.IsLocked(self) end
+        for _, prereq in ipairs(talent.prereqs) do
+            if (Ranks(classId)[prereq[1]] or 0) < prereq[2] then return true end
+        end
+        return false
+    end
+    function button:AddTooltipInstructions(tooltip)
+        local classId, tab, talent = StanceTalent(self)
+        if not classId then return blizzard.AddTooltipInstructions(self, tooltip) end
+        if CanLearn(classId, tab, talent) then
+            GameTooltip_AddBlankLineToTooltip(tooltip)
+            GameTooltip_AddInstructionLine(tooltip, TALENT_BUTTON_TOOLTIP_PURCHASE_INSTRUCTIONS)
+        end
+    end
+    function button:AddTooltipErrors(tooltip)
+        local classId, tab, talent = StanceTalent(self)
+        if not classId then return blizzard.AddTooltipErrors(self, tooltip) end
+        local ranks = Ranks(classId)
+        if (ranks[talent.id] or 0) >= talent.max then return end
+        local lines = {}
+        if SpentInTab(classId, tab) < talent.need then
+            table.insert(lines, string.format("Requires %d points in %s", talent.need, tab.name))
+        end
+        for _, prereq in ipairs(talent.prereqs) do
+            if (ranks[prereq[1]] or 0) < prereq[2] then
+                local other = talentOfEntry[classId][prereq[1]]
+                local name = other and SpellName(other[2].spell) or "another talent"
+                table.insert(lines, string.format("Requires %d point%s in %s", prereq[2], prereq[2] > 1 and "s" or "", name))
+            end
+        end
+        if PointsLeft(classId) <= 0 then table.insert(lines, "No talent points left") end
+        if #lines > 0 then GameTooltip_AddBlankLineToTooltip(tooltip) end
+        for _, line in ipairs(lines) do GameTooltip_AddErrorLine(tooltip, line) end
+    end
+end
+
+local function UpdateButtons(talentFrame)
+    if not talentFrame.EnumerateAllTalentButtons then return end
+    for button in talentFrame:EnumerateAllTalentButtons() do
+        PatchButton(button)
+        if StanceOfFrame(talentFrame) and button.UpdateVisualState then pcall(button.UpdateVisualState, button) end
+    end
+end
+
+local watchedFrames = {}
+function WatchFrame(talentFrame)
+    if not watchedFrames[talentFrame] and talentFrame.RegisterCallback and TalentFrameBaseMixin then
+        watchedFrames[talentFrame] = true
+        talentFrame:RegisterCallback(TalentFrameBaseMixin.Event.TalentButtonAcquired, function(_, button) PatchButton(button) end, ns)
+    end
+    UpdateButtons(talentFrame)
 end
 
 if EventRegistry then
@@ -521,6 +618,7 @@ if EventRegistry then
         local classId = StanceOfFrame(talentFrame)
         if not classId then return end
         shownStance = { frame = talentFrame, class = classId }
+        WatchFrame(talentFrame)
         local entryID = talentButton.GetEntryID and talentButton:GetEntryID()
         if mouseButton == "LeftButton" and entryID and not IsModifiedClick("CHATLINK") then
             if InCombatLockdown() then ns.Print("not in combat.") return end
