@@ -616,6 +616,15 @@ function WatchFrame(talentFrame)
     if not watchedFrames[talentFrame] and talentFrame.RegisterCallback and TalentFrameBaseMixin then
         watchedFrames[talentFrame] = true
         talentFrame:RegisterCallback(TalentFrameBaseMixin.Event.TalentButtonAcquired, function(_, button) PatchButton(button) end, ns)
+        -- the window loads its config again on its own (a talent update from the server, a config event) and takes the tree
+        -- from the config's treeIDs, which the client fills from the player's own class: a stance config always gets its
+        -- class's tree instead, or it is drawn on the player's tree with nothing in it
+        local blizzardSetTree = talentFrame.SetTalentTreeID
+        talentFrame.SetTalentTreeID = function(self, treeID, forceUpdate)
+            local classId = StanceOfFrame(self)
+            if classId then treeID = CLASS_TREES[classId] end
+            return blizzardSetTree(self, treeID, forceUpdate)
+        end
     end
     UpdateButtons(talentFrame)
 end
