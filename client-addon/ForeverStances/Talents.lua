@@ -438,6 +438,7 @@ local CLASS_TREES = { [1] = 1117, [2] = 1100, [3] = 1091, [4] = 1111, [5] = 1114
 local shownStance          -- { frame, class } of the client window showing a stance config
 local WatchFrame           -- set below: draws that window's buttons by the stance rules
 local StanceOfFrame        -- set below: the stance class whose config a talent frame shows, or nil
+local StartFollowing       -- set below: the window follows the stance until it closes
 
 -- true when the client's talent window is open on this stance class's tree
 function ns.IsShowingStanceTree(classId)
@@ -465,21 +466,54 @@ function ns.ShowTraitTree(classId, quiet)
         WatchFrame(talents)
         talents:SetConfigID(configID, true)
     end)
+    if shown then StartFollowing() end
     if not shown then ns.Print("could not open the talent window: " .. tostring(err)) end
     return shown
 end
 
--- a stance change with the client's window open on a stance tree: the new stance's tree, or the player's own talents
-ns.On("STANCE_CHANGED", function(active)
-    local talents = PlayerSpellsFrame and PlayerSpellsFrame.TalentsFrame
-    if InCombatLockdown() or not (talents and talents:IsVisible() and StanceOfFrame(talents)) then return end
-    if active ~= 0 and CLASS_TREES[active] and ns.Talents[active] then
-        ns.ShowTraitTree(active)
-    else
-        local configID = C_ClassTalents.GetActiveConfigID and C_ClassTalents.GetActiveConfigID()
-        if configID then pcall(talents.SetConfigID, talents, configID, true) end
+-- A window opened on a stance tree follows the stance until it is closed. A stance change is not acted on at once: the old
+-- stance's aura can go before the new one comes (a "no stance" in between), and the server's talent update after it makes
+-- the window load the player's active config again. Once both have settled the stance the player is in is read and its tree
+-- shown, or the player's own talents out of a stance.
+local followStance = false
+local followToken = 0
+
+local function FollowStance()
+    followToken = followToken + 1
+    local token = followToken
+    C_Timer.After(0.5, function()
+        if token ~= followToken or not followStance or InCombatLockdown() then return end
+        local talents = PlayerSpellsFrame and PlayerSpellsFrame:IsShown() and PlayerSpellsFrame.TalentsFrame
+        if not talents then return end
+        local active = ns.auraStance or ns.state.active or 0
+        local onStanceTree = active ~= 0 and CLASS_TREES[active] and ns.Talents[active]
+            and (StanceOfFrame(talents) == active or ns.ShowTraitTree(active, true))
+        -- no stance, or one without a stance config (the real class's own): the player's own talents
+        if not onStanceTree and StanceOfFrame(talents) then
+            local configID = C_ClassTalents.GetActiveConfigID and C_ClassTalents.GetActiveConfigID()
+            if configID then pcall(talents.SetConfigID, talents, configID, true) end
+        end
+    end)
+end
+
+local hookedHide = false
+function StartFollowing()
+    followStance = true
+    if PlayerSpellsFrame and not hookedHide then
+        hookedHide = true
+        PlayerSpellsFrame:HookScript("OnHide", function() followStance = false end)
     end
-end)
+end
+
+local function FollowIfOpen() if followStance then FollowStance() end end
+ns.On("STANCE_CHANGED", FollowStance)
+ns.On("TALENTS", FollowIfOpen)
+-- the client's own reasons to load the active config again
+local followEvents = CreateFrame("Frame")
+for _, event in ipairs({ "PLAYER_TALENT_UPDATE", "TRAIT_CONFIG_UPDATED", "ACTIVE_COMBAT_CONFIG_CHANGED" }) do
+    pcall(followEvents.RegisterEvent, followEvents, event)
+end
+followEvents:SetScript("OnEvent", FollowIfOpen)
 
 -- the client's window cannot buy ranks in a config that is not the active one (canPurchaseRank is false for every node), so a
 -- click on a stance tree's talent is sent to the server as the stance window's are (LEARN); the server's reply rewrites the
