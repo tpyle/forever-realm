@@ -110,7 +110,7 @@ SETTINGS = {
         # live Forever realms), the value curve for items without one, never below vendor price. Every auctioneer is on
         # the Neutral house (AllowTwoSide.Interaction.Auction = 1, the dist default), so only that one is stocked. Sellers
         # are 12 bare level-60 characters of account 2000000001 (no real account). The buyer stays off: it would buy the
-        # players' own listings.
+        # players' own listings. Amounts are three times the preset's (1500/1500/600/100).
         "AuctionHouseBot.Seller.Enabled": "1",
         "AuctionHouseBot.Account": "2000000001",
         "AuctionHouseBot.Sellers.Count": "12",
@@ -124,10 +124,10 @@ SETTINGS = {
         "AuctionHouseBot.Horde.Items.Amount.Ratio": "0",
         "AuctionHouseBot.Neutral.Items.Amount.Ratio": "100",
         "AuctionHouseBot.Items.Amount.Gray": "0",
-        "AuctionHouseBot.Items.Amount.White": "1500",
-        "AuctionHouseBot.Items.Amount.Green": "1500",
-        "AuctionHouseBot.Items.Amount.Blue": "600",
-        "AuctionHouseBot.Items.Amount.Purple": "100",
+        "AuctionHouseBot.Items.Amount.White": "4500",
+        "AuctionHouseBot.Items.Amount.Green": "4500",
+        "AuctionHouseBot.Items.Amount.Blue": "1800",
+        "AuctionHouseBot.Items.Amount.Purple": "300",
         "AuctionHouseBot.Items.Vendor": "1",
         "AuctionHouseBot.Items.Loot": "1",
         "AuctionHouseBot.Items.Crafted": "1",
