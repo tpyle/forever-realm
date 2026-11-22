@@ -414,14 +414,21 @@ never passes on. `/stance ping` tests the link.
   frame). `/stance tree [class id]` opens any learned stance class's tree
   there. `/stance talents` opens the addon's own window, `/stance scale`
   or the corner grip sizes it (for the whole account).
-- **A bar per stance.** The main bar (slots 1-12) and the stance and form
-  bars (73-120) have a layout per class stance and one for the real class.
-  Every change to one of those slots is saved at once for the stance the
-  player is in, and taking a stance puts back its layout (a new stance
-  starts empty). Nothing is saved at the stance change itself: an earlier
-  version saved the whole bar then, keyed by a remembered "stance on
-  screen", and lost layouts when that went out of step after a reload.
-  A checkbox in the panel turns it off; `/stance bars reset` forgets them.
+- **A bar per stance** (the server's, since ForeverStances 1.5). The main
+  bar (slots 1-12) and the stance and form bars (73-120) have a set per
+  class stance and one for the real class; the other bars are shared.
+  `character_action` keeps a stance's set under `traitConfigId` = -class
+  (`ClassStance::GetActionBarKey`, never a real loadout's), the real
+  class's under the loadout's as upstream does. `Player::SetClassStance`
+  saves the buttons under the old stance and loads the new one's, sent as
+  one `SMSG_UPDATE_ACTION_BUTTONS`: no cursor flicker, nothing the client
+  can refuse. The stance aura is loaded before the buttons at login, so
+  the right set loads then too. Up to 1.4 the addon swapped them itself
+  with PickupAction/PlaceAction (the icons flashing on the cursor; Charge
+  sometimes not put back); 1.5 sends those saved layouts once
+  (`BARSETB`/`BARSET`/`BARSETE`). `/stance bars reset` (`BARRESET`) clears
+  every other stance's set. `ClassStance.SeparateActionBars = 0`: one set
+  for all.
 - **The stance spellbook.** In a class stance the spellbook key and micro
   button (intercepted as the talent ones are) open that class's spells,
   sent by the server (`SPELLS`), a tab per class skill line after the
@@ -451,6 +458,7 @@ Settings (`tools/apply_config.py`; all need a worldserver restart):
 | `ClassStance.TalentsAlwaysActive` | 1 | 0 applies a stance class's talents only in its stance. |
 | `ClassStance.AllowInCombat` | 0 | 1 lets stances be changed in combat. |
 | `ClassStance.SharedTalentPoints` | 0 | 1 makes one pool for the real class and every stance class. |
+| `ClassStance.SeparateActionBars` | 1 | 0 keeps one set of action bars for every stance. |
 
 Limits of the two off-by-default settings:
 - `AllowInCombat = 1`: the server switches the resource, stats, spell

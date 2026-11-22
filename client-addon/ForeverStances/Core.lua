@@ -89,7 +89,7 @@ frame:SetScript("OnEvent", function(_, event, arg1, arg2)
         ForeverStancesDB = ForeverStancesDB or {}
         local db = ForeverStancesDB
         db.layouts = db.layouts or {}
-        if db.separateBars == nil then db.separateBars = true end
+        db.separateBars = nil        -- 1.4 and older: the stance bars are the server's now (Bars.lua)
         ns.db = db
         -- settings shared by every character of the account (the talent window's size)
         ForeverStancesAccountDB = ForeverStancesAccountDB or {}

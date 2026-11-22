@@ -5,7 +5,8 @@ local _, ns = ...
 local PREFIX = "FSTANCE"
 -- our own requests come back to us as the whisper's echo: only the server's answers are read
 local ANSWERS = { PONG = true, STATE = true, TALB = true, TAL = true, TALE = true, SKLB = true, SKL = true, SKLE = true,
-                  SPLB = true, SPLS = true, SPL = true, SPLE = true, ERR = true }
+                  SPLB = true, SPLS = true, SPL = true, SPLE = true, ERR = true,
+                  BARS = true }
 
 local registered = false
 local function Register()
@@ -168,6 +169,10 @@ function handlers.SPLE(args)
     ns.spellbooks[classId] = spellParts[classId]
     spellParts[classId] = nil
     ns.Fire("SPELLS", classId)
+end
+
+function handlers.BARS(args)
+    ns.Fire("BARS", args == "1")
 end
 
 function handlers.ERR(args)

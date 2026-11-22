@@ -75,6 +75,9 @@ SETTINGS = {
         # 1: one pool of talent points for the real class and all stance classes (the client's own talent window then shows
         # points spent on stances as unspent; the server refuses to spend them there). 0: a full pool per class.
         "ClassStance.SharedTalentPoints": "0",
+        # 1: the server keeps the main bar and the stance and form bars per class stance and swaps them at a stance change (the other
+        # bars are shared); 0: one set for every stance. Up to ForeverStances 1.4 the addon swapped them on the client.
+        "ClassStance.SeparateActionBars": "1",
         # Spells of a known class that are cast in any stance (or none), space separated; 75 Auto Shot. The ForeverStances
         # addon reads this line too (tools/class_stance_addon_data.py) and does not grey them.
         "ClassStance.AnyStanceSpells": "75",

@@ -41,12 +41,8 @@ for i = 1, MAX_ROWS do
     rows[i] = { cast = cast, points = points, talents = talents }
 end
 
-local barsCheck = CreateFrame("CheckButton", nil, frame, "UICheckButtonTemplate")
-barsCheck:SetSize(24, 24)
 local barsLabel = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-barsLabel:SetPoint("LEFT", barsCheck, "RIGHT", 2, 0)
-barsLabel:SetText("A separate action bar for each stance")
-barsCheck:SetScript("OnClick", function(self) ns.SetSeparateBars(self:GetChecked() and true or false) end)
+barsLabel:SetJustifyH("LEFT")
 
 local skillsTitle = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 skillsTitle:SetText("Class, armor and weapon skills")
@@ -137,9 +133,10 @@ local function Draw()
     end
 
     local top = -48 - math.max(#list, 1) * ROW - 6
-    barsCheck:ClearAllPoints()
-    barsCheck:SetPoint("TOPLEFT", 10, top)
-    barsCheck:SetChecked(ns.db and ns.db.separateBars)
+    barsLabel:ClearAllPoints()
+    barsLabel:SetPoint("TOPLEFT", 14, top - 6)
+    barsLabel:SetText(ns.serverBars == false and "One set of action bars for every stance (the server's setting)"
+        or "Each stance has its own main and stance bars")
     DrawSkills(top - 30)
 end
 
