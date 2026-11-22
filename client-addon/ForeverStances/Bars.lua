@@ -45,10 +45,24 @@ local function SaveAll(key)
     for _, slot in ipairs(SLOTS) do layout[slot] = Read(slot) or false end
 end
 
+local function PickUpSpell(id)
+    if C_Spell and C_Spell.PickupSpell then C_Spell.PickupSpell(id) else PickupSpell(id) end
+end
+
+-- puts the entry on the cursor; a spell the client will not pick up by its ID (a stance spell such as Charge, right at a
+-- stance change) is tried by its base spell and by name
 local function PickUp(entry)
     local actionType, id = entry[1], entry[2]
     if actionType == "spell" then
-        if C_Spell and C_Spell.PickupSpell then C_Spell.PickupSpell(id) else PickupSpell(id) end
+        pcall(PickUpSpell, id)
+        if not GetCursorInfo() and FindBaseSpellByID then
+            local base = FindBaseSpellByID(id)
+            if base and base ~= id then pcall(PickUpSpell, base) end
+        end
+        if not GetCursorInfo() then
+            local name = C_Spell and C_Spell.GetSpellName and C_Spell.GetSpellName(id)
+            if name then pcall(PickUpSpell, name) end
+        end
     elseif actionType == "item" then
         if C_Item and C_Item.PickupItem then C_Item.PickupItem(id) else PickupItem(id) end
     elseif actionType == "macro" then
@@ -58,21 +72,17 @@ local function PickUp(entry)
     end
 end
 
-local function Restore(key)
-    local layout = ns.db.layouts[key]
-    if not layout then
-        -- the first time in this stance: an empty bar to fill (the real class keeps what is there)
-        if key == "own" then SaveAll(key) return end
-        layout = Layout(key)
-    end
-    restoring = true
+local function Same(want, have)
+    return (not want and not have) or (want and have and want[1] == have[1] and want[2] == have[2]) or false
+end
+
+-- puts the layout on the bars
+local function Place(layout)
     ClearCursor()
     for _, slot in ipairs(SLOTS) do
         local want = layout[slot] or nil
-        local have = Read(slot)
-        local same = (not want and not have) or (want and have and want[1] == have[1] and want[2] == have[2])
-        if not same then
-            if have then
+        if not Same(want, Read(slot)) then
+            if Read(slot) then
                 PickupAction(slot)
                 ClearCursor()
             end
@@ -83,9 +93,42 @@ local function Restore(key)
             end
         end
     end
-    -- the client reports the moves a moment later
-    C_Timer.After(0.5, function() restoring = false end)
+end
+
+local restoreToken = 0
+
+local function Restore(key)
+    local layout = ns.db.layouts[key]
+    if not layout then
+        -- the first time in this stance: an empty bar to fill (the real class keeps what is there)
+        if key == "own" then SaveAll(key) return end
+        layout = Layout(key)
+    end
+    restoreToken = restoreToken + 1
+    local token = restoreToken
+    restoring = true
+    Place(layout)
     ns.RefreshTint()
+    -- a second pass a moment later, still not saving: a slot the client would not fill at the stance change itself, or one it
+    -- emptied just after (it reports the moves late too), gets its action back instead of being saved as empty
+    C_Timer.After(1, function()
+        if token ~= restoreToken then return end
+        if InCombatLockdown() then restoring = false return end
+        Place(layout)
+        ns.RefreshTint()
+        C_Timer.After(0.5, function()
+            if token ~= restoreToken then return end
+            restoring = false
+            for _, slot in ipairs(SLOTS) do
+                local want = layout[slot] or nil
+                if want and not Same(want, Read(slot)) then
+                    local name = want[1] == "spell" and C_Spell and C_Spell.GetSpellName and C_Spell.GetSpellName(want[2])
+                    ns.Print(("could not put back %s on action slot %d (%s %s); it stays in this stance's layout."):format(
+                        name or "an action", slot, tostring(want[1]), tostring(want[2])))
+                end
+            end
+        end)
+    end)
 end
 
 local function Apply()
