@@ -22,8 +22,17 @@ M="mysql -h127.0.0.1 -utrinity"
 # whole-line "--" comments are dropped: the mysql client sends each one as a statement of its own, which sets ROW_COUNT()
 # to 0, and upstream's checked files read ROW_COUNT() after a comment (2026_11_16_70_world_local_whispering_forest_*,
 # "deleted = 18"); the worldserver's updater, which they are written for, does not do that
-qualified() { sed -E -e '/^[[:space:]]*--([[:space:]]|$)/d' \
-    -e "s/(^|[^a-z_])(auth|world|characters|hotfixes)\.([a-z_])/\1\2${SUFFIX}.\3/g" "$1"; }
+# (only outside a quoted string or /* */ comment: 2026_11_20_75_world_forever_eg_live_quests_2.sql has a quest text line starting "-- ")
+drop_comments() { awk '
+  { if (q == "" && $0 ~ /^[[:space:]]*--([[:space:]]|$)/) next
+    for (i = 1; i <= length($0); i++) { c = substr($0, i, 1)
+      if (q == "*") { if (substr($0, i, 2) == "*/") { q = ""; i++ } }
+      else if (q != "") { if (c == "\\") i++; else if (c == q) q = "" }
+      else if (c == "\047" || c == "\"") q = c
+      else if (substr($0, i, 2) == "/*") { q = "*"; i++ }
+      else if (c == "-" && substr($0, i, 3) ~ /^--([ \t]|$)/ || c == "#") break }
+    print }' "$1"; }
+qualified() { drop_comments "$1" | sed -E -e "s/(^|[^a-z_])(auth|world|characters|hotfixes)\.([a-z_])/\1\2${SUFFIX}.\3/g"; }
 
 run_ours() { # db file
   echo "  ours: $(basename $2)"

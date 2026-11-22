@@ -33,7 +33,7 @@ SETTINGS = {
         # Upstream's auth SQL keeps realm 70 on gamebuild 70707; newer clients join through this list and get their own
         # message numbering per connection (Classic.Build70790.FirstBuild covers every later build). Must match
         # bnetserver.conf, or character creation hangs on the finish button (the client's realm query gets nothing).
-        "Realm.AlsoAcceptBuilds": '"70790,70840,70862,70888,70938,70959"',
+        "Realm.AlsoAcceptBuilds": '"70790,70840,70862,70888,70938,70959,71037"',
         # No auth key is known for 70840, 70862 or 70888 (sql/custom/auth/2026_11_*_auth_classic_708*.sql).
         "Network.SkipBuildAuthKeyCheck": "1",
         "Network.EnterEncryptedModeRegionGroup": "8",
@@ -84,6 +84,12 @@ SETTINGS = {
         # Recipes also use reagents from the character's bank (bank tab and bank bags), from anywhere, as on retail (Spell.cpp).
         "Crafting.ReagentsFromBank": "1",
         "WorldScale.Aggro.LevelsBelow": "5",
+        # Upstream 0.1.39's dungeon carry block compares the party's highest level with the creature's own vanilla level, not the
+        # scaled one: with WorldScale.Dungeons every dungeon below the player would pay no kill experience. Off.
+        "Classic.DungeonCarryXpBlock": "0",
+        # Quests at the level cap still pay gold for their experience (vanilla; upstream 0.1.39 made it 0 as on WoW Forever live).
+        # Rate.XP.DungeonKill stays at upstream's 0.6 (WoW Forever live since 2026-11-08; the dist said 1.8 before 0.1.39).
+        "Rate.Quest.Money.Max.Level.Reward": "1",
         # Quests (custom-sql 057): the client shows a quest at the player's level (never below its own); one below the player
         # pays half way from its experience at its own level to a quest of the player's level (level 4 quest, level 6 player).
         "WorldScale.Quests": "1",
@@ -149,7 +155,7 @@ SETTINGS = {
         "Realm.CfgContentSetID": "137",
         "Realm.SuperDistrictID": "2",
         # Same list as worldserver.conf (realm 70 is on 70707).
-        "Realm.AlsoAcceptBuilds": '"70790,70840,70862,70888,70938,70959"',
+        "Realm.AlsoAcceptBuilds": '"70790,70840,70862,70888,70938,70959,71037"',
     },
 }
 

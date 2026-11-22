@@ -661,6 +661,22 @@ never started a server, so steps 4 and 5 only turned up during the deploy:
 5. Stop it, run `tools/rerun_custom_sql.sh` (it lists the tables that
    changed: those upstream had overwritten), start again.
 
+The 2026-11-22 merge (WoW Forever 0.1.39.1, client build 71037, 14 commits,
+merge `b10d9f4c42`) had two conflicts, both kept on both sides: the includes
+in `KillRewarder.cpp`, and upstream's shared-corpse loot comment next to our
+`BonusLoot::Roll` in `Unit.cpp` (Tomes still roll in every loot path).
+`apply_upstream_sql.sh` stopped at
+`2026_11_20_75_world_forever_eg_live_quests_2.sql`: a quest text spans lines
+and one of them starts with `-- `, which the comment filter dropped from
+inside the string. The filter now skips lines inside a quoted string or a
+`/* */` comment (it gives the same output as before for every other file).
+The updater re-ran nothing at the first start. Config: 71037 is added to
+`Realm.AlsoAcceptBuilds`. `Classic.DungeonCarryXpBlock` is off: it compares
+the party's level with the creature's unscaled level, so with
+`WorldScale.Dungeons` every dungeon below the player would pay no kill
+experience. `Rate.XP.DungeonKill` stays at upstream's new 0.6. Quests at
+level 60 still pay gold (`Rate.Quest.Money.Max.Level.Reward = 1`).
+
 The 2026-11-19 merge (WoW Forever 0.1.38, client build 70959, 209 commits,
 merge `95a696263e`) had one conflict, in `Player::_LoadSkills`: upstream's new
 profession child line check around our `ClassStance::GetSkillRaceClassInfo`
