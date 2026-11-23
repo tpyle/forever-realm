@@ -595,6 +595,23 @@ for two more (2665, 6987), which take push IDs 81001896-81001897. The
 rollback only sets the stock stacks back; it no longer deletes rows by
 `VerifiedBuild = 70790`, which upstream's rows carry too.
 
+### Crafting Reagent Bag (080, `tools/reagent_bag.py`)
+
+A 40 slot bag (8104122, `.additem 8104122`, no vendor or recipe) that holds
+every crafting reagent. A profession bag takes what shares a bit of its own
+BagFamily (`ItemCanGoIntoBag`, and the client's check), and cloth, thread,
+meat, elementals, engineering parts or stone have no bit at all. So 080
+gives 671 items a new family bit, 0x10000000, which no item had: every
+Trade Goods item (620) and the 51 others the client flags as used in a
+tradeskill (Light Feather, Black Diamond, Deviate Fish...). Their other
+bits stay, so herb and mining bags still take what they did. The bag is
+Satchel of Cenarius as an Engineering Bag (subclass 4, which no Classic
+bag uses; the client labels it so, as the server has no ItemSubClass
+hotfix table). Subclass 11, the retail reagent bag, would only go in the
+reagent bag slot. Like 059, 080 is safe to run again (`INSERT IGNORE`
+records, then one `UPDATE` of the bit) and `rerun_custom_sql.sh` re-runs
+it. Reagent push IDs are 82000000 + item ID; the bag's are 81001898-81001899.
+
 ### Quest log of 40
 
 The Forever client's quest log counts to 40 (12/40), but the core kept
@@ -722,8 +739,8 @@ overwritten again at any later merge. Step 5 puts them back.
 
 Our `hotfix_data` push IDs are 81000200-81001481 (065 moved them from
 2000200-2001481). Upstream uses 2000001-2054257, and both sides delete by
-ID range. New hotfix files take IDs above the highest in use (81001897,
-059's last two).
+ID range. New hotfix files take IDs above the highest in use (81001899,
+080's bag; 080's reagents use 82000000 + item ID).
 
 The merge put 49 Forever recipes on trainers (43 before) through
 upstream's `2026_11_05_06_world_forever_profession_trainer_recipes.sql`,
