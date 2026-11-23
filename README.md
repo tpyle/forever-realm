@@ -582,6 +582,19 @@ with the whole record: 460 new `item_sparse` rows read from the client's
 the existing hotfix rows), and 2 existing rows changed. The script writes
 059 and its rollback; rerun it if a client update changes ItemSparse.
 
+Upstream's `2026_11_06_40_hotfixes_forever_live_pushes_70790.sql` (applied
+at the 0.1.34 merge, after 059) replaced 11 of those rows with live records
+at the stock stack (Steel Bar, the Elemental Fire/Earth/Water/Air and
+others), and `rerun_custom_sql.sh` skipped 059. Since 0.1.39, 059 is safe to
+run again: `INSERT IGNORE` for the records it adds (a row an upstream file
+already has is kept), then one `UPDATE` sets 999 on every item, and
+`rerun_custom_sql.sh` re-runs it on `hotfixes`. The items are chosen by
+their stock stack in `ItemSparse.db2`, so the script gives the same output
+whether 059 is applied or not. That is 464 items now: upstream added rows
+for two more (2665, 6987), which take push IDs 81001896-81001897. The
+rollback only sets the stock stacks back; it no longer deletes rows by
+`VerifiedBuild = 70790`, which upstream's rows carry too.
+
 ### Quest log of 40
 
 The Forever client's quest log counts to 40 (12/40), but the core kept
@@ -709,7 +722,8 @@ overwritten again at any later merge. Step 5 puts them back.
 
 Our `hotfix_data` push IDs are 81000200-81001481 (065 moved them from
 2000200-2001481). Upstream uses 2000001-2054257, and both sides delete by
-ID range. New hotfix files take IDs above 81001481.
+ID range. New hotfix files take IDs above the highest in use (81001897,
+059's last two).
 
 The merge put 49 Forever recipes on trainers (43 before) through
 upstream's `2026_11_05_06_world_forever_profession_trainer_recipes.sql`,
