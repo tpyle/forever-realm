@@ -612,6 +612,16 @@ reagent bag slot. Like 059, 080 is safe to run again (`INSERT IGNORE`
 records, then one `UPDATE` of the bit) and `rerun_custom_sql.sh` re-runs
 it. Reagent push IDs are 82000000 + item ID; the bag's are 81001898-81001899.
 
+### Craftsman's Writs keep the writ (081)
+
+Each Craftsman's Writ starts its order quest and is also the quest's first
+objective, but upstream's 134 writ quests have StartItem 0. On accept the
+core destroys the item that started a quest unless it is the StartItem or
+a unique objective, so the writ was gone and the quest could not be handed
+in. 081 sets StartItem to the writ (from the client's StartQuestID, checked
+against each quest's objective), as upstream's `2026_11_20_63` does for the
+Shipping Labels (their issue #354). Drop it once upstream fixes the writs.
+
 ### Quest log of 40
 
 The Forever client's quest log counts to 40 (12/40), but the core kept
